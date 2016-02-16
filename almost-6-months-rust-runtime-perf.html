@@ -176,12 +176,13 @@ div#notebook {
 </div>
 <div class="inner_cell">
 <div class="text_cell_render border-box-sizing rendered_html">
-<h1 id="(Almost)-6-Months-of-Rust-Runtime-Performance">(Almost) 6 Months of Rust Runtime Performance<a class="anchor-link" href="#(Almost)-6-Months-of-Rust-Runtime-Performance">&#182;</a></h1><h2 id="From-2015-09-01-to-2016-02-11">From 2015-09-01 to 2016-02-11<a class="anchor-link" href="#From-2015-09-01-to-2016-02-11">&#182;</a></h2><h3 id="Update">Update<a class="anchor-link" href="#Update">&#182;</a></h3><p>After some feedback on the reddit thread where I posted this, I've made a few changes here:</p>
+<h1 id="(Almost)-6-Months-of-Rust-Runtime-Performance">(Almost) 6 Months of Rust Runtime Performance<a class="anchor-link" href="#(Almost)-6-Months-of-Rust-Runtime-Performance">&#182;</a></h1><h2 id="From-2015-09-01-to-2016-02-11">From 2015-09-01 to 2016-02-11<a class="anchor-link" href="#From-2015-09-01-to-2016-02-11">&#182;</a></h2><h3 id="Update">Update<a class="anchor-link" href="#Update">&#182;</a></h3><h3 id="NOTE:-The-benchmarks-are-now-normalized-against-the-first-result-in-each-individual-series.-So-a-value-of-1.0-means-&quot;roughly-similar-performance-as-the-first-measure-in-the-series.&quot;">NOTE: The benchmarks are now normalized against the first result in each individual series. So a value of 1.0 means "roughly similar performance as the first measure in the series."<a class="anchor-link" href="#NOTE:-The-benchmarks-are-now-normalized-against-the-first-result-in-each-individual-series.-So-a-value-of-1.0-means-&quot;roughly-similar-performance-as-the-first-measure-in-the-series.&quot;">&#182;</a></h3><p>After some feedback on the reddit thread where I posted this, I've made a few changes here:</p>
 <ol>
 <li>Posted the benchmark manifest and output json to <a href="https://github.com/dikaiosune/rust-runtime-benchmarks">https://github.com/dikaiosune/rust-runtime-benchmarks</a>. Note that not all benchmarks in the manifest are included because they may have had all of their benchmarks ignored. secondstring doesn't have parameters to include which flags are called on <code>cargo bench</code> (yet).</li>
 <li>I changed all of the graphs to use a more sensible y-axis. There's now a 50% window above and below the normalized values.</li>
 <li>Fixed some typos.</li>
 <li>Normalized all benchmark results against those from the first date the benchmark was successfully run (9/1/15 in most cases).</li>
+<li>Fixed small problem of unordered iteration through dict keys. Results look the same, but it's more correct.</li>
 </ol>
 <hr>
 <p>After reading <a href="https://github.com/rust-lang/rust/issues/31265">this issue</a>, I decided to poke around in the history of <code>rustc</code>'s runtime performance.</p>
@@ -189,14 +190,14 @@ div#notebook {
 <p>Using my completely 100% scientific method of benchmark selection (a combination of finding benchmarks among the most downloaded crates and searching crates.io for "benchmark"), I picked recent commits from ~20 repositories that support running <code>cargo bench</code> in their root directory and ran their benchmarks against nightly compilers from 9/1/15 to 2/11/16. The repositories' benchmarks were pinned to a single commit each, so this runs the same code across all of the compiler versions. All benchmarks were run on the same machine (i7-6700k) running Arch Linux.</p>
 <p>I took the geometric mean of all benchmark functions for each day, and plotted them below. This should (although I'm certainly not a statistician) provide a performance index for each crate that varies independently of the relative benchmark times of functions (i.e. a 10% variation in a 1000ns function should affect the geometric mean about as much as a 10% variation in a 10ns function).</p>
 <p>I'd be more than interested in hearing about a better way to reduce these benchmarks to a single index, as I'd eventually like to include a regression detector in secondstring. I had initially tried graphing each bench function separately, but that's hundreds of series and I just don't think it's practical.</p>
-<p>I think the graphs more or less speak for themselves, although since I'm not terribly familiar with geometric means, I don't know what percentage variation in the index corresponds to in terms of actual performance. From the reading I've done, it seems like a 25% change in a single benchmark function would have a ~12% change in the index, which can be stacked multiple times for shifts in multiple bench functions.</p>
+<p>Since I'm not terribly familiar with geometric means, I don't know what percentage variation in the index corresponds to in terms of actual performance. From the reading I've done, it seems like a 25% change in a single benchmark function would have a ~12% change in the index, which can be stacked multiple times for shifts in multiple bench functions.</p>
 
 </div>
 </div>
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[219]:</div>
+<div class="prompt input_prompt">In&nbsp;[268]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
@@ -228,7 +229,7 @@ div#notebook {
                         <span class="n">benches</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="n">date</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
                     
                     <span class="n">time</span> <span class="o">=</span> <span class="n">bench_run</span><span class="p">[</span><span class="n">bench_fn</span><span class="p">][</span><span class="s1">&#39;avg_time_ns&#39;</span><span class="p">]</span>
-                    <span class="n">benches</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="n">date</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
+                    <span class="n">benches</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="n">date</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">bench_fn</span><span class="p">,</span> <span class="n">time</span><span class="p">))</span>
 </pre></div>
 
 </div>
@@ -238,17 +239,17 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[220]:</div>
+<div class="prompt input_prompt">In&nbsp;[280]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="k">def</span> <span class="nf">normalize_against_first</span><span class="p">(</span><span class="n">bench_results</span><span class="p">):</span>
-    <span class="n">tpls</span> <span class="o">=</span> <span class="p">[(</span><span class="n">d</span><span class="p">,</span> <span class="n">avgs</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span><span class="p">,</span> <span class="n">avgs</span> <span class="ow">in</span> <span class="n">bench_results</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
+    <span class="n">tpls</span> <span class="o">=</span> <span class="p">[(</span><span class="n">d</span><span class="p">,</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">avgs</span><span class="p">))</span> <span class="k">for</span> <span class="n">d</span><span class="p">,</span> <span class="n">avgs</span> <span class="ow">in</span> <span class="n">bench_results</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
     <span class="n">tpls</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">tpls</span><span class="p">)</span>
     <span class="n">first</span> <span class="o">=</span> <span class="n">tpls</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     
     <span class="n">normalized</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="k">for</span> <span class="n">date</span><span class="p">,</span> <span class="n">avgs</span> <span class="ow">in</span> <span class="n">bench_results</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-        <span class="n">normalized</span><span class="p">[</span><span class="n">date</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span> <span class="o">/</span> <span class="n">f</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">avgs</span><span class="p">,</span> <span class="n">first</span><span class="p">[</span><span class="mi">1</span><span class="p">])]</span>
+        <span class="n">normalized</span><span class="p">[</span><span class="n">date</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">/</span> <span class="n">f</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">avgs</span><span class="p">),</span> <span class="n">first</span><span class="p">[</span><span class="mi">1</span><span class="p">])]</span>
     
     <span class="k">return</span> <span class="n">normalized</span>
 </pre></div>
@@ -260,7 +261,7 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[221]:</div>
+<div class="prompt input_prompt">In&nbsp;[281]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># prep a pandas dataframe of each benchmark suite</span>
@@ -288,7 +289,7 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[222]:</div>
+<div class="prompt input_prompt">In&nbsp;[282]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="c1"># plot a time series for a given benchmark</span>
@@ -316,7 +317,7 @@ div#notebook {
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[223]:</div>
+<div class="prompt input_prompt">In&nbsp;[283]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">plot_benchmark</span><span class="p">(</span><span class="n">benches</span><span class="p">[</span><span class="s1">&#39;ahocorasick&#39;</span><span class="p">])</span>
@@ -334,7 +335,7 @@ div#notebook {
 
 
 <div class="output_text output_subarea ">
-<pre>&lt;matplotlib.figure.Figure at 0x7fb72ea60ef0&gt;</pre>
+<pre>&lt;matplotlib.figure.Figure at 0x7fb72ef99438&gt;</pre>
 </div>
 
 </div>
@@ -570,7 +571,7 @@ RCSVgoWIiKRSsBARkVQKFiIikkrBQkREUv0/mwPyzEPMxnMAAAAASUVORK5CYII=
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[224]:</div>
+<div class="prompt input_prompt">In&nbsp;[284]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">plot_benchmark</span><span class="p">(</span><span class="n">benches</span><span class="p">[</span><span class="s1">&#39;byteorder&#39;</span><span class="p">])</span>
@@ -588,7 +589,7 @@ RCSVgoWIiKRSsBARkVQKFiIikkrBQkREUv0/mwPyzEPMxnMAAAAASUVORK5CYII=
 
 
 <div class="output_text output_subarea ">
-<pre>&lt;matplotlib.figure.Figure at 0x7fb72f077b70&gt;</pre>
+<pre>&lt;matplotlib.figure.Figure at 0x7fb72f09ccf8&gt;</pre>
 </div>
 
 </div>
@@ -775,7 +776,7 @@ MzOr5GBhZmaVHCzMzKzS/wMfvBU7sWXZtgAAAABJRU5ErkJggg==
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[225]:</div>
+<div class="prompt input_prompt">In&nbsp;[285]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">plot_benchmark</span><span class="p">(</span><span class="n">benches</span><span class="p">[</span><span class="s1">&#39;cbor&#39;</span><span class="p">])</span>
@@ -793,7 +794,7 @@ MzOr5GBhZmaVHCzMzKzS/wMfvBU7sWXZtgAAAABJRU5ErkJggg==
 
 
 <div class="output_text output_subarea ">
-<pre>&lt;matplotlib.figure.Figure at 0x7fb73bff28d0&gt;</pre>
+<pre>&lt;matplotlib.figure.Figure at 0x7fb72e1750f0&gt;</pre>
 </div>
 
 </div>
@@ -1036,7 +1037,7 @@ QkREMilYiIhIJgULERHJ9P/iARFGdsGHOwAAAABJRU5ErkJggg==
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[226]:</div>
+<div class="prompt input_prompt">In&nbsp;[286]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">plot_benchmark</span><span class="p">(</span><span class="n">benches</span><span class="p">[</span><span class="s1">&#39;clap&#39;</span><span class="p">])</span>
@@ -1054,7 +1055,7 @@ QkREMilYiIhIJgULERHJ9P/iARFGdsGHOwAAAABJRU5ErkJggg==
 
 
 <div class="output_text output_subarea ">
-<pre>&lt;matplotlib.figure.Figure at 0x7fb72e180e80&gt;</pre>
+<pre>&lt;matplotlib.figure.Figure at 0x7fb72e4fb2b0&gt;</pre>
 </div>
 
 </div>
@@ -1322,7 +1323,7 @@ cRwnxbiIO47jpBgXccdxnBTjIu44jpNi/h8rWk6VKIcm9wAAAABJRU5ErkJggg==
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[227]:</div>
+<div class="prompt input_prompt">In&nbsp;[287]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">plot_benchmark</span><span class="p">(</span><span class="n">benches</span><span class="p">[</span><span class="s1">&#39;crc&#39;</span><span class="p">])</span>
@@ -1340,7 +1341,7 @@ cRwnxbiIO47jpBgXccdxnBTjIu44jpNi/h8rWk6VKIcm9wAAAABJRU5ErkJggg==
 
 
 <div class="output_text output_subarea ">
-<pre>&lt;matplotlib.figure.Figure at 0x7fb72e175fd0&gt;</pre>
+<pre>&lt;matplotlib.figure.Figure at 0x7fb72ea508d0&gt;</pre>
 </div>
 
 </div>
@@ -1551,7 +1552,7 @@ sDAzs1L/DzxKGrhJPYBtAAAAAElFTkSuQmCC
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[228]:</div>
+<div class="prompt input_prompt">In&nbsp;[288]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">plot_benchmark</span><span class="p">(</span><span class="n">benches</span><span class="p">[</span><span class="s1">&#39;csv&#39;</span><span class="p">])</span>
@@ -1569,7 +1570,7 @@ sDAzs1L/DzxKGrhJPYBtAAAAAElFTkSuQmCC
 
 
 <div class="output_text output_subarea ">
-<pre>&lt;matplotlib.figure.Figure at 0x7fb72ea45a20&gt;</pre>
+<pre>&lt;matplotlib.figure.Figure at 0x7fb72eddd9e8&gt;</pre>
 </div>
 
 </div>
@@ -1819,7 +1820,7 @@ ImOh+AAAAABJRU5ErkJggg==
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[229]:</div>
+<div class="prompt input_prompt">In&nbsp;[289]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">plot_benchmark</span><span class="p">(</span><span class="n">benches</span><span class="p">[</span><span class="s1">&#39;hyper&#39;</span><span class="p">])</span>
@@ -1837,7 +1838,7 @@ ImOh+AAAAABJRU5ErkJggg==
 
 
 <div class="output_text output_subarea ">
-<pre>&lt;matplotlib.figure.Figure at 0x7fb72ea022b0&gt;</pre>
+<pre>&lt;matplotlib.figure.Figure at 0x7fb72ef2cef0&gt;</pre>
 </div>
 
 </div>
@@ -2071,7 +2072,7 @@ V3UlOQAAAABJRU5ErkJggg==
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[230]:</div>
+<div class="prompt input_prompt">In&nbsp;[290]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">plot_benchmark</span><span class="p">(</span><span class="n">benches</span><span class="p">[</span><span class="s1">&#39;itertools&#39;</span><span class="p">])</span>
@@ -2089,7 +2090,7 @@ V3UlOQAAAABJRU5ErkJggg==
 
 
 <div class="output_text output_subarea ">
-<pre>&lt;matplotlib.figure.Figure at 0x7fb72edc1780&gt;</pre>
+<pre>&lt;matplotlib.figure.Figure at 0x7fb72edd82e8&gt;</pre>
 </div>
 
 </div>
@@ -2321,7 +2322,7 @@ RBbVUHoPJN0ytSxERKRhKbltwUVEpO4pWIiISCoFCxERSaVgISIiqRQsREQklYKFiIik+n/SKQuY
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[231]:</div>
+<div class="prompt input_prompt">In&nbsp;[291]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">plot_benchmark</span><span class="p">(</span><span class="n">benches</span><span class="p">[</span><span class="s1">&#39;memchr&#39;</span><span class="p">])</span>
@@ -2339,7 +2340,7 @@ RBbVUHoPJN0ytSxERKRhKbltwUVEpO4pWIiISCoFCxERSaVgISIiqRQsREQklYKFiIik+n/SKQuY
 
 
 <div class="output_text output_subarea ">
-<pre>&lt;matplotlib.figure.Figure at 0x7fb72e3fb978&gt;</pre>
+<pre>&lt;matplotlib.figure.Figure at 0x7fb72e1843c8&gt;</pre>
 </div>
 
 </div>
@@ -2538,7 +2539,7 @@ mfU8BwszM6vkYGFmZpUcLMzMrJKDhZmZVXKwMDOzSv8fNYtjEQmIPHUAAAAASUVORK5CYII=
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[232]:</div>
+<div class="prompt input_prompt">In&nbsp;[292]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">plot_benchmark</span><span class="p">(</span><span class="n">benches</span><span class="p">[</span><span class="s1">&#39;ndarray&#39;</span><span class="p">])</span>
@@ -2556,7 +2557,7 @@ mfU8BwszM6vkYGFmZpUcLMzMrJKDhZmZVXKwMDOzSv8fNYtjEQmIPHUAAAAASUVORK5CYII=
 
 
 <div class="output_text output_subarea ">
-<pre>&lt;matplotlib.figure.Figure at 0x7fb7312dcda0&gt;</pre>
+<pre>&lt;matplotlib.figure.Figure at 0x7fb72e429d30&gt;</pre>
 </div>
 
 </div>
@@ -2797,7 +2798,7 @@ shARkUxKFiIikknJQkREMilZiIhIJiULERHJpGQhIiKZ/h/qJlv9RwnJWQAAAABJRU5ErkJggg==
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[233]:</div>
+<div class="prompt input_prompt">In&nbsp;[293]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">plot_benchmark</span><span class="p">(</span><span class="n">benches</span><span class="p">[</span><span class="s1">&#39;num&#39;</span><span class="p">])</span>
@@ -2815,7 +2816,7 @@ shARkUxKFiIikknJQkREMilZiIhIJiULERHJpGQhIiKZ/h/qJlv9RwnJWQAAAABJRU5ErkJggg==
 
 
 <div class="output_text output_subarea ">
-<pre>&lt;matplotlib.figure.Figure at 0x7fb72e42eda0&gt;</pre>
+<pre>&lt;matplotlib.figure.Figure at 0x7fb72ed66860&gt;</pre>
 </div>
 
 </div>
@@ -3042,7 +3043,7 @@ AElFTkSuQmCC
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[234]:</div>
+<div class="prompt input_prompt">In&nbsp;[294]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">plot_benchmark</span><span class="p">(</span><span class="n">benches</span><span class="p">[</span><span class="s1">&#39;optional&#39;</span><span class="p">])</span>
@@ -3060,7 +3061,7 @@ AElFTkSuQmCC
 
 
 <div class="output_text output_subarea ">
-<pre>&lt;matplotlib.figure.Figure at 0x7fb72e170588&gt;</pre>
+<pre>&lt;matplotlib.figure.Figure at 0x7fb72ec29438&gt;</pre>
 </div>
 
 </div>
@@ -3266,7 +3267,7 @@ QmCC
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[235]:</div>
+<div class="prompt input_prompt">In&nbsp;[295]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">plot_benchmark</span><span class="p">(</span><span class="n">benches</span><span class="p">[</span><span class="s1">&#39;permutohedron&#39;</span><span class="p">])</span>
@@ -3284,7 +3285,7 @@ QmCC
 
 
 <div class="output_text output_subarea ">
-<pre>&lt;matplotlib.figure.Figure at 0x7fb72e1c85c0&gt;</pre>
+<pre>&lt;matplotlib.figure.Figure at 0x7fb72ebef748&gt;</pre>
 </div>
 
 </div>
@@ -3476,7 +3477,7 @@ RK5CYII=
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[236]:</div>
+<div class="prompt input_prompt">In&nbsp;[296]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">plot_benchmark</span><span class="p">(</span><span class="n">benches</span><span class="p">[</span><span class="s1">&#39;quickersort&#39;</span><span class="p">])</span>
@@ -3494,7 +3495,7 @@ RK5CYII=
 
 
 <div class="output_text output_subarea ">
-<pre>&lt;matplotlib.figure.Figure at 0x7fb72ef3ff28&gt;</pre>
+<pre>&lt;matplotlib.figure.Figure at 0x7fb72eb8a550&gt;</pre>
 </div>
 
 </div>
@@ -3708,7 +3709,7 @@ WJiZWSkHCzMzK/X/SjfkKeLo22gAAAAASUVORK5CYII=
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[237]:</div>
+<div class="prompt input_prompt">In&nbsp;[297]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">plot_benchmark</span><span class="p">(</span><span class="n">benches</span><span class="p">[</span><span class="s1">&#39;rand&#39;</span><span class="p">])</span>
@@ -3726,7 +3727,7 @@ WJiZWSkHCzMzK/X/SjfkKeLo22gAAAAASUVORK5CYII=
 
 
 <div class="output_text output_subarea ">
-<pre>&lt;matplotlib.figure.Figure at 0x7fb72ef24780&gt;</pre>
+<pre>&lt;matplotlib.figure.Figure at 0x7fb72eb02eb8&gt;</pre>
 </div>
 
 </div>
@@ -3930,7 +3931,7 @@ Sv8PkvFDPot1TdgAAAAASUVORK5CYII=
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[238]:</div>
+<div class="prompt input_prompt">In&nbsp;[298]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">plot_benchmark</span><span class="p">(</span><span class="n">benches</span><span class="p">[</span><span class="s1">&#39;rayon&#39;</span><span class="p">])</span>
@@ -3948,7 +3949,7 @@ Sv8PkvFDPot1TdgAAAAASUVORK5CYII=
 
 
 <div class="output_text output_subarea ">
-<pre>&lt;matplotlib.figure.Figure at 0x7fb72ee32940&gt;</pre>
+<pre>&lt;matplotlib.figure.Figure at 0x7fb72eb26c18&gt;</pre>
 </div>
 
 </div>
@@ -4193,7 +4194,7 @@ REQkl5KFiIjkUrIQEZFc/x9g9tJ65cdepgAAAABJRU5ErkJggg==
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[239]:</div>
+<div class="prompt input_prompt">In&nbsp;[299]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">plot_benchmark</span><span class="p">(</span><span class="n">benches</span><span class="p">[</span><span class="s1">&#39;regex&#39;</span><span class="p">])</span>
@@ -4211,7 +4212,7 @@ REQkl5KFiIjkUrIQEZFc/x9g9tJ65cdepgAAAABJRU5ErkJggg==
 
 
 <div class="output_text output_subarea ">
-<pre>&lt;matplotlib.figure.Figure at 0x7fb72ef8e9b0&gt;</pre>
+<pre>&lt;matplotlib.figure.Figure at 0x7fb72eb2e588&gt;</pre>
 </div>
 
 </div>
@@ -4446,7 +4447,7 @@ WJiZWan/B0IMEhXcIQqJAAAAAElFTkSuQmCC
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[240]:</div>
+<div class="prompt input_prompt">In&nbsp;[300]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">plot_benchmark</span><span class="p">(</span><span class="n">benches</span><span class="p">[</span><span class="s1">&#39;simd&#39;</span><span class="p">])</span>
@@ -4464,7 +4465,7 @@ WJiZWan/B0IMEhXcIQqJAAAAAElFTkSuQmCC
 
 
 <div class="output_text output_subarea ">
-<pre>&lt;matplotlib.figure.Figure at 0x7fb72e41d518&gt;</pre>
+<pre>&lt;matplotlib.figure.Figure at 0x7fb72edd05c0&gt;</pre>
 </div>
 
 </div>
@@ -4688,7 +4689,7 @@ REnXFCevlPbi/NNL0lXFiT5XKn8Xc3a2ATky57laF6SzqfiBCmtU6pq42exodjsCtdY5xM3MSqxs
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[241]:</div>
+<div class="prompt input_prompt">In&nbsp;[301]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">plot_benchmark</span><span class="p">(</span><span class="n">benches</span><span class="p">[</span><span class="s1">&#39;suffix&#39;</span><span class="p">])</span>
@@ -4706,7 +4707,7 @@ REnXFCevlPbi/NNL0lXFiT5XKn8Xc3a2ATky57laF6SzqfiBCmtU6pq42exodjsCtdY5xM3MSqxs
 
 
 <div class="output_text output_subarea ">
-<pre>&lt;matplotlib.figure.Figure at 0x7fb72e46ad68&gt;</pre>
+<pre>&lt;matplotlib.figure.Figure at 0x7fb72ea11eb8&gt;</pre>
 </div>
 
 </div>
@@ -4928,7 +4929,7 @@ wszMSjlYmJlZKQcLMzMr9f8YYKQsaJhQ0gAAAABJRU5ErkJggg==
 </div>
 <div class="cell border-box-sizing code_cell rendered">
 <div class="input">
-<div class="prompt input_prompt">In&nbsp;[242]:</div>
+<div class="prompt input_prompt">In&nbsp;[302]:</div>
 <div class="inner_cell">
     <div class="input_area">
 <div class=" highlight hl-ipython3"><pre><span></span><span class="n">plot_benchmark</span><span class="p">(</span><span class="n">benches</span><span class="p">[</span><span class="s1">&#39;uuid&#39;</span><span class="p">])</span>
@@ -4946,7 +4947,7 @@ wszMSjlYmJlZKQcLMzMr9f8YYKQsaJhQ0gAAAABJRU5ErkJggg==
 
 
 <div class="output_text output_subarea ">
-<pre>&lt;matplotlib.figure.Figure at 0x7fb72ee4ecf8&gt;</pre>
+<pre>&lt;matplotlib.figure.Figure at 0x7fb72e4294a8&gt;</pre>
 </div>
 
 </div>
