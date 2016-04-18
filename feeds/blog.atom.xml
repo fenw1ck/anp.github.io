@@ -1,100 +1,99 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-  <link href='//fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,700,400italic' rel='stylesheet' type='text/css'>
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>how i did that one thing that one time</title><link href="/" rel="alternate"></link><link href="/feeds/blog.atom.xml" rel="self"></link><id>/</id><updated>2016-02-16T00:00:00-07:00</updated><entry><title>(Almost) 6 Months of Rust Runtime Performance</title><link href="/almost-6-months-rust-runtime-perf.html" rel="alternate"></link><published>2016-02-16T00:00:00-07:00</published><author><name>Adam Perry</name></author><id>tag:,2016-02-16:almost-6-months-rust-runtime-perf.html</id><summary type="html">&lt;h2&gt;From 2015-09-01 to&amp;nbsp;2016-02-11&lt;/h2&gt;
+&lt;h3&gt;Update&lt;/h3&gt;
+&lt;p&gt;&lt;em&gt;&lt;span class="caps"&gt;NOTE&lt;/span&gt;: The benchmarks are now normalized against the first result in each individual series. So a value of 1.0 means &amp;#8220;roughly similar performance as the first measure in the&amp;nbsp;series.&amp;#8221;&lt;/em&gt;&lt;/p&gt;
+&lt;p&gt;After some feedback on the reddit thread where I posted this, I&amp;#8217;ve made a few changes&amp;nbsp;here:&lt;/p&gt;
+&lt;ol&gt;
+&lt;li&gt;Posted the benchmark manifest and output json to &lt;a href="https://github.com/dikaiosune/rust-runtime-benchmarks"&gt;https://github.com/dikaiosune/rust-runtime-benchmarks&lt;/a&gt;. Note that not all benchmarks in the manifest are included because they may have had all of their benchmarks ignored. secondstring doesn&amp;#8217;t have parameters to include which flags are called on &lt;code&gt;cargo bench&lt;/code&gt; (yet).&lt;/li&gt;
+&lt;li&gt;I changed all of the graphs to use a more sensible y-axis. There&amp;#8217;s now a 50% window above and below the normalized&amp;nbsp;values.&lt;/li&gt;
+&lt;li&gt;Fixed some&amp;nbsp;typos.&lt;/li&gt;
+&lt;li&gt;Normalized all benchmark results against those from the first date the benchmark was successfully run (9/1/15 in most&amp;nbsp;cases).&lt;/li&gt;
+&lt;li&gt;Set the same x axis for all graphs (9/1/15 -&amp;nbsp;2/11/16).&lt;/li&gt;
+&lt;/ol&gt;
+&lt;hr /&gt;
+&lt;p&gt;After reading &lt;a href="https://github.com/rust-lang/rust/issues/31265"&gt;this issue&lt;/a&gt;, I decided to poke around in the history of &lt;code&gt;rustc&lt;/code&gt;&lt;span class="quo"&gt;&amp;#8216;&lt;/span&gt;s runtime&amp;nbsp;performance.&lt;/p&gt;
+&lt;p&gt;This data was generated using &lt;a href="https://github.com/dikaiosune/secondstring"&gt;secondstring&lt;/a&gt;, a benchmark tracking tool I&amp;#8217;m working on (it&amp;#8217;s still pretty rudimentary right now). At the moment it only supports running specified crate versions and git repo commits against a range of nightly compiler dates. It doesn&amp;#8217;t have any analysis built-in and just saves some &lt;span class="caps"&gt;JSON&lt;/span&gt; of the results. Soon I&amp;#8217;d like to add automatic regression detection, but for now I just wanted to do a little graphing of the&amp;nbsp;data.&lt;/p&gt;
+&lt;p&gt;Using my completely 100% scientific method of benchmark selection (a combination of finding benchmarks among the most downloaded crates and searching crates.io for &amp;#8220;benchmark&amp;#8221;), I picked recent commits from ~20 repositories that support running &lt;code&gt;cargo bench&lt;/code&gt; in their root directory and ran their benchmarks against nightly compilers from 9/1/15 to 2/11/16. The repositories&amp;#8217; benchmarks were pinned to a single commit each, so this runs the same code across all of the compiler versions. All benchmarks were run on the same machine (i7-6700k) running Arch&amp;nbsp;Linux.&lt;/p&gt;
+&lt;p&gt;I took the geometric mean of all benchmark functions for each day, and plotted them below. This should (although I&amp;#8217;m certainly not a statistician) provide a performance index for each crate that varies independently of the relative benchmark times of functions (i.e. a 10% variation in a 1000ns function should affect the geometric mean about as much as a 10% variation in a 10ns&amp;nbsp;function).&lt;/p&gt;
+&lt;p&gt;I&amp;#8217;d be more than interested in hearing about a better way to reduce these benchmarks to a single index, as I&amp;#8217;d eventually like to include a regression detector in secondstring. I had initially tried graphing each bench function separately, but that&amp;#8217;s hundreds of series and I just don&amp;#8217;t think it&amp;#8217;s&amp;nbsp;practical.&lt;/p&gt;
+&lt;p&gt;Since I&amp;#8217;m not terribly familiar with geometric means, I don&amp;#8217;t know what percentage variation in the index corresponds to in terms of actual performance. From the reading I&amp;#8217;ve done, it seems like a 25% change in a single benchmark function would have a ~12% change in the index, which can be stacked multiple times for shifts in multiple bench&amp;nbsp;functions.&lt;/p&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="o"&gt;%&lt;/span&gt;&lt;span class="n"&gt;matplotlib&lt;/span&gt; &lt;span class="n"&gt;inline&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;datetime&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;json&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;pandas&lt;/span&gt; &lt;span class="kn"&gt;as&lt;/span&gt; &lt;span class="nn"&gt;pd&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;matplotlib.pyplot&lt;/span&gt; &lt;span class="kn"&gt;as&lt;/span&gt; &lt;span class="nn"&gt;plt&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;matplotlib.dates&lt;/span&gt; &lt;span class="kn"&gt;as&lt;/span&gt; &lt;span class="nn"&gt;mdates&lt;/span&gt;
+&lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="nn"&gt;numpy&lt;/span&gt; &lt;span class="kn"&gt;as&lt;/span&gt; &lt;span class="nn"&gt;np&lt;/span&gt;
+&lt;span class="kn"&gt;from&lt;/span&gt; &lt;span class="nn"&gt;scipy.stats.mstats&lt;/span&gt; &lt;span class="kn"&gt;import&lt;/span&gt; &lt;span class="n"&gt;gmean&lt;/span&gt;
 
-    <link rel="stylesheet" type="text/css" href="https://dikaiosune.github.io/theme/stylesheet/style.min.css">
+&lt;span class="n"&gt;benches&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{}&lt;/span&gt;
 
-  <link rel="stylesheet" type="text/css" href="https://dikaiosune.github.io/theme/stylesheet/pygments.min.css">
-  <link rel="stylesheet" type="text/css" href="https://dikaiosune.github.io/theme/stylesheet/font-awesome.min.css">
+&lt;span class="c1"&gt;# process the JSON saved by secondstring&lt;/span&gt;
+&lt;span class="k"&gt;with&lt;/span&gt; &lt;span class="nb"&gt;open&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;example-benchmarks.json&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;as&lt;/span&gt; &lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+  &lt;span class="n"&gt;manifest_data&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;json&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;loads&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&amp;#39;&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;join&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;m&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;readlines&lt;/span&gt;&lt;span class="p"&gt;()))&lt;/span&gt;
+  &lt;span class="n"&gt;raw_benches&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;manifest_data&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;benches&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+  &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;b&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;raw_benches&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+      &lt;span class="n"&gt;name&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;name&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+      &lt;span class="n"&gt;benches&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;name&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{}&lt;/span&gt;
+      &lt;span class="n"&gt;results&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;b&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;results&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
 
+      &lt;span class="c1"&gt;# for successful benchmarks, accumulate a list of all function average times&lt;/span&gt;
+      &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;date&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;r&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;results&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;items&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;
+          &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;r&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;get&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;Success&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="bp"&gt;None&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="ow"&gt;is&lt;/span&gt; &lt;span class="ow"&gt;not&lt;/span&gt; &lt;span class="bp"&gt;None&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+              &lt;span class="n"&gt;bench_run&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;r&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;Success&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;][&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;times&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+              &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;bench_fn&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;bench_run&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+                  &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;date&lt;/span&gt; &lt;span class="ow"&gt;not&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;benches&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;name&lt;/span&gt;&lt;span class="p"&gt;]:&lt;/span&gt;
+                      &lt;span class="n"&gt;benches&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;name&lt;/span&gt;&lt;span class="p"&gt;][&lt;/span&gt;&lt;span class="n"&gt;date&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[]&lt;/span&gt;
 
-    <link href="https://dikaiosune.github.io/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="how i did that one thing that one time Atom">
-
-
-
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta name="robots" content="index, follow" />
-
-<meta name="author" content="Adam Perry" />
-<meta name="description" content="A quick investigation into historical runtime performance of Rust programs." />
-<meta name="keywords" content="rust, benchmark, performance">
-<meta property="og:site_name" content="how i did that one thing that one time"/>
-<meta property="og:title" content="(Almost) 6 Months of Rust Runtime Performance"/>
-<meta property="og:description" content="A quick investigation into historical runtime performance of Rust programs."/>
-<meta property="og:locale" content="en_US"/>
-<meta property="og:url" content="https://dikaiosune.github.io/almost-6-months-rust-runtime-perf.html"/>
-<meta property="og:type" content="article"/>
-<meta property="article:published_time" content="2016-02-16 00:00:00-07:00"/>
-<meta property="article:modified_time" content=""/>
-<meta property="article:author" content="https://dikaiosune.github.io/author/adam-perry.html">
-<meta property="article:section" content="rust"/>
-<meta property="article:tag" content="rust"/>
-<meta property="article:tag" content="benchmark"/>
-<meta property="article:tag" content="performance"/>
-<meta property="og:image" content="/theme/img/profile.jpg">
-  <title>how i did that one thing that one time &ndash; (Almost) 6 Months of Rust Runtime Performance</title>
-</head>
-<body>
-  <aside>
-    <div>
-      <a href="https://dikaiosune.github.io">
-        <img src="/theme/img/profile.jpg" alt="how i did that one thing that one time" title="how i did that one thing that one time">
-      </a>
-      <h1><a href="https://dikaiosune.github.io">how i did that one thing that one time</a></h1>
-      <p>some technical ramblings by Adam Perry</p>
-      <nav>
-        <ul class="list">
-        </ul>
-      </nav>
-      <ul class="social">
-        <li><a class="sc-envelope-o" href="mailto:adam.n.perry@gmail.com" target="_blank"><i class="fa fa-envelope-o"></i></a></li>
-        <li><a class="sc-github" href="https://github.com/dikaiosune" target="_blank"><i class="fa fa-github"></i></a></li>
-        <li><a class="sc-twitter" href="https://twitter.com/dika10sune" target="_blank"><i class="fa fa-twitter"></i></a></li>
-        <li><a class="sc-rss" href="/feeds/all.atom.xml" target="_blank"><i class="fa fa-rss"></i></a></li>
-      </ul>
-    </div>
-  </aside>
-  <main>
-    <nav>
-      <a href="https://dikaiosune.github.io">Home</a>
-      <a href="/archives.html">Archives</a>
-      <a href="/tags.html">Tags</a>
-      <a href="https://dikaiosune.github.io/feeds/all.atom.xml">Atom</a>
-    </nav>
-
-<article>
-  <header>
-    <h1 id="almost-6-months-rust-runtime-perf">(Almost) 6 Months of Rust Runtime&nbsp;Performance</h1>
-    <p>Posted on Tue 16 February 2016 in <a href="https://dikaiosune.github.io/category/rust.html">rust</a></p>
-  </header>
-  <div>
-    <h2>From 2015-09-01 to&nbsp;2016-02-11</h2>
-<h3>Update</h3>
-<p><em><span class="caps">NOTE</span>: The benchmarks are now normalized against the first result in each individual series. So a value of 1.0 means &#8220;roughly similar performance as the first measure in the&nbsp;series.&#8221;</em></p>
-<p>After some feedback on the reddit thread where I posted this, I&#8217;ve made a few changes&nbsp;here:</p>
-<ol>
-<li>Posted the benchmark manifest and output json to <a href="https://github.com/dikaiosune/rust-runtime-benchmarks">https://github.com/dikaiosune/rust-runtime-benchmarks</a>. Note that not all benchmarks in the manifest are included because they may have had all of their benchmarks ignored. secondstring doesn&#8217;t have parameters to include which flags are called on <code>cargo bench</code> (yet).</li>
-<li>I changed all of the graphs to use a more sensible y-axis. There&#8217;s now a 50% window above and below the normalized&nbsp;values.</li>
-<li>Fixed some&nbsp;typos.</li>
-<li>Normalized all benchmark results against those from the first date the benchmark was successfully run (9/1/15 in most&nbsp;cases).</li>
-<li>Set the same x axis for all graphs (9/1/15 -&nbsp;2/11/16).</li>
-</ol>
-<hr />
-<p>After reading <a href="https://github.com/rust-lang/rust/issues/31265">this issue</a>, I decided to poke around in the history of <code>rustc</code><span class="quo">&#8216;</span>s runtime&nbsp;performance.</p>
-<p>This data was generated using <a href="https://github.com/dikaiosune/secondstring">secondstring</a>, a benchmark tracking tool I&#8217;m working on (it&#8217;s still pretty rudimentary right now). At the moment it only supports running specified crate versions and git repo commits against a range of nightly compiler dates. It doesn&#8217;t have any analysis built-in and just saves some <span class="caps">JSON</span> of the results. Soon I&#8217;d like to add automatic regression detection, but for now I just wanted to do a little graphing of the&nbsp;data.</p>
-<p>Using my completely 100% scientific method of benchmark selection (a combination of finding benchmarks among the most downloaded crates and searching crates.io for &#8220;benchmark&#8221;), I picked recent commits from ~20 repositories that support running <code>cargo bench</code> in their root directory and ran their benchmarks against nightly compilers from 9/1/15 to 2/11/16. The repositories&#8217; benchmarks were pinned to a single commit each, so this runs the same code across all of the compiler versions. All benchmarks were run on the same machine (i7-6700k) running Arch&nbsp;Linux.</p>
-<p>I took the geometric mean of all benchmark functions for each day, and plotted them below. This should (although I&#8217;m certainly not a statistician) provide a performance index for each crate that varies independently of the relative benchmark times of functions (i.e. a 10% variation in a 1000ns function should affect the geometric mean about as much as a 10% variation in a 10ns&nbsp;function).</p>
-<p>I&#8217;d be more than interested in hearing about a better way to reduce these benchmarks to a single index, as I&#8217;d eventually like to include a regression detector in secondstring. I had initially tried graphing each bench function separately, but that&#8217;s hundreds of series and I just don&#8217;t think it&#8217;s&nbsp;practical.</p>
-<p>Since I&#8217;m not terribly familiar with geometric means, I don&#8217;t know what percentage variation in the index corresponds to in terms of actual performance. From the reading I&#8217;ve done, it seems like a 25% change in a single benchmark function would have a ~12% change in the index, which can be stacked multiple times for shifts in multiple bench&nbsp;functions.</p>
-<p>All of the code for generating the graphics is at the end of this&nbsp;post.</p>
-<h2>ahocorasick</h2>
-<div class="highlight"><pre><span></span><span class="n">plot_benchmark</span><span class="p">(</span><span class="n">benches</span><span class="p">[</span><span class="s1">&#39;ahocorasick&#39;</span><span class="p">])</span>
-</pre></div>
+                  &lt;span class="n"&gt;time&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;bench_run&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;bench_fn&lt;/span&gt;&lt;span class="p"&gt;][&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;avg_time_ns&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+                  &lt;span class="n"&gt;benches&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;name&lt;/span&gt;&lt;span class="p"&gt;][&lt;/span&gt;&lt;span class="n"&gt;date&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;append&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;time&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
 
 
-<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYsAAAD8CAYAAACGsIhGAAAABHNCSVQICAgIfAhkiAAAAAlwSFlz
+&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;normalize_against_first&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;bench_results&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+  &lt;span class="n"&gt;tpls&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[(&lt;/span&gt;&lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;avgs&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;avgs&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;bench_results&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;items&lt;/span&gt;&lt;span class="p"&gt;()]&lt;/span&gt;
+  &lt;span class="n"&gt;tpls&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="nb"&gt;sorted&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;tpls&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+  &lt;span class="n"&gt;first&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;tpls&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt;
+
+  &lt;span class="n"&gt;normalized&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{}&lt;/span&gt;
+  &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;date&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;avgs&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;bench_results&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;items&lt;/span&gt;&lt;span class="p"&gt;():&lt;/span&gt;
+      &lt;span class="n"&gt;normalized&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;date&lt;/span&gt;&lt;span class="p"&gt;]&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="n"&gt;a&lt;/span&gt; &lt;span class="o"&gt;/&lt;/span&gt; &lt;span class="n"&gt;f&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;a&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;f&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="nb"&gt;zip&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;avgs&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;first&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;])]&lt;/span&gt;
+
+  &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;normalized&lt;/span&gt;
+
+&lt;span class="c1"&gt;# prep a pandas dataframe of each benchmark suite&lt;/span&gt;
+&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;data_frame_for_benchmark&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;bench_results&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+  &lt;span class="c1"&gt;# parse the dates and calculate the geometric mean&lt;/span&gt;
+  &lt;span class="n"&gt;bench_results&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;normalize_against_first&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;bench_results&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+  &lt;span class="n"&gt;bench_results&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="n"&gt;datetime&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;datetime&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;strptime&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="s1"&gt;&amp;#39;%Y-%m-&lt;/span&gt;&lt;span class="si"&gt;%d&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt; &lt;span class="n"&gt;np&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;array&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;v&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;v&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;bench_results&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;items&lt;/span&gt;&lt;span class="p"&gt;()}&lt;/span&gt;
+  &lt;span class="n"&gt;bench_results&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="p"&gt;{&lt;/span&gt;&lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt; &lt;span class="n"&gt;gmean&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;times&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt; &lt;span class="k"&gt;for&lt;/span&gt; &lt;span class="n"&gt;d&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;times&lt;/span&gt; &lt;span class="ow"&gt;in&lt;/span&gt; &lt;span class="n"&gt;bench_results&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;items&lt;/span&gt;&lt;span class="p"&gt;()}&lt;/span&gt;
+
+  &lt;span class="c1"&gt;# create a dataframe for plotting&lt;/span&gt;
+  &lt;span class="n"&gt;frame&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;pd&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;DataFrame&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;from_dict&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;bench_results&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="n"&gt;orient&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;index&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+  &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;frame&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;size&lt;/span&gt; &lt;span class="o"&gt;&amp;amp;&lt;/span&gt;&lt;span class="n"&gt;gt&lt;/span&gt;&lt;span class="p"&gt;;&lt;/span&gt; &lt;span class="mi"&gt;0&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+      &lt;span class="c1"&gt;# sort by date&lt;/span&gt;
+      &lt;span class="n"&gt;frame&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;frame&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;sort_index&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+      &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;frame&lt;/span&gt;
+  &lt;span class="k"&gt;else&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+      &lt;span class="c1"&gt;# handle benchmarks that had all of their functions ignored&lt;/span&gt;
+      &lt;span class="k"&gt;return&lt;/span&gt; &lt;span class="n"&gt;kc&lt;/span&gt;&lt;span class="s2"&gt;&amp;quot;&amp;gt;None&lt;/span&gt;
+
+&lt;span class="c1"&gt;# plot a time series for a given benchmark&lt;/span&gt;
+&lt;span class="k"&gt;def&lt;/span&gt; &lt;span class="nf"&gt;plot_benchmark&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;bench_times&lt;/span&gt;&lt;span class="p"&gt;):&lt;/span&gt;
+  &lt;span class="n"&gt;frame&lt;/span&gt; &lt;span class="o"&gt;=&lt;/span&gt; &lt;span class="n"&gt;data_frame_for_benchmark&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;bench_times&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+  &lt;span class="k"&gt;if&lt;/span&gt; &lt;span class="n"&gt;frame&lt;/span&gt; &lt;span class="ow"&gt;is&lt;/span&gt; &lt;span class="ow"&gt;not&lt;/span&gt; &lt;span class="bp"&gt;None&lt;/span&gt;&lt;span class="p"&gt;:&lt;/span&gt;
+      &lt;span class="n"&gt;plt&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;figure&lt;/span&gt;&lt;span class="p"&gt;()&lt;/span&gt;
+      &lt;span class="n"&gt;frame&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;plot&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;legend&lt;/span&gt;&lt;span class="o"&gt;=&lt;/span&gt;&lt;span class="bp"&gt;False&lt;/span&gt;&lt;span class="p"&gt;)&lt;/span&gt;
+      &lt;span class="n"&gt;plt&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;ylim&lt;/span&gt;&lt;span class="p"&gt;([&lt;/span&gt;&lt;span class="mf"&gt;0.5&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mf"&gt;1.5&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+      &lt;span class="n"&gt;plt&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;xlim&lt;/span&gt;&lt;span class="p"&gt;([&lt;/span&gt;&lt;span class="n"&gt;datetime&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;datetime&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;2015&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;9&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;1&lt;/span&gt;&lt;span class="p"&gt;),&lt;/span&gt; &lt;span class="n"&gt;datetime&lt;/span&gt;&lt;span class="o"&gt;.&lt;/span&gt;&lt;span class="n"&gt;datetime&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="mi"&gt;2016&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;2&lt;/span&gt;&lt;span class="p"&gt;,&lt;/span&gt; &lt;span class="mi"&gt;11&lt;/span&gt;&lt;span class="p"&gt;)])&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;h2&gt;ahocorasick&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;plot_benchmark&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;benches&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;ahocorasick&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
+
+
+&lt;p&gt;&lt;img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYsAAAD8CAYAAACGsIhGAAAABHNCSVQICAgIfAhkiAAAAAlwSFlz
 AAALEgAACxIB0t1+/AAAIABJREFUeJzt3XeYVOXZx/HvLaBIFTUiRUUFbNgwKEledUGNsWtibImx
 JHaMLRpNVLBisEds2EWiImpULBGiq6CxEBSViCgigiIWunT2fv+4z7DDuOxZYJmy+/tc1167M+fM
 7PPMnHnup4+5OyIiItVZq9AJEBGR4qdgISIiqRQsREQklYKFiIikUrAQEZFUDQudgDXBzDTFS0Rk
@@ -300,13 +299,13 @@ VghzmdmxwP3uXjJ7VuVDjVZwe3wXgRMDu2e6+8tQd/oq03hM/R1tZv3rQ36zXEJsbTAkKSDKC5uc
 vPkz0ZL8GLjF3fsXOD0F4ZUr9BcSAZO6HigA3H1gsmamJL9TY01Z1W4oSx5bJ5uhUsnMziSmQder
 D43Fdw0M9Pje7HrLzA4gpg3/pT4EClmxlQ4WdbmvUkSWV196DyTdKrUsRESkfim5bcFFRCT/FCxE
 RCSVgoWIiKRSsBARkVQKFiIikkrBQkREUv0/mwPyzEPMxnMAAAAASUVORK5CYII=
-"></p>
-<h2>byteorder</h2>
-<div class="highlight"><pre><span></span><span class="n">plot_benchmark</span><span class="p">(</span><span class="n">benches</span><span class="p">[</span><span class="s1">&#39;byteorder&#39;</span><span class="p">])</span>
-</pre></div>
+"&gt;&lt;/p&gt;
+&lt;h2&gt;byteorder&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;plot_benchmark&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;benches&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;byteorder&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
 
 
-<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYsAAAD8CAYAAACGsIhGAAAABHNCSVQICAgIfAhkiAAAAAlwSFlz
+&lt;p&gt;&lt;img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYsAAAD8CAYAAACGsIhGAAAABHNCSVQICAgIfAhkiAAAAAlwSFlz
 AAALEgAACxIB0t1+/AAAIABJREFUeJzt3Xe4XFW5x/HvLwkQCCQQOqGXSAm9iHqRA8KlCwJSRUQv
 iEpREb0WIIiCRkHqVVBRQVQ6SAQEhIMoIE1pCqEEKVJDL6Ek7/3jXZMMw0l2ysmUc36f55nnzMze
 M2etmT37XX0rIjAzM5ueAa1OgJmZtT8HCzMzq+RgYWZmlRwszMyskoOFmZlVGtTqBMwJkjzEy8xs
@@ -463,13 +462,13 @@ x6xZ1QwzNIM78loEQXbsHhwR10HfaausEjn09w5Jp/aH/NY5glza4IJyguhubXKa5mtkTfIB4JSI
 OLXF6WmJmDpD/00yYNLXAwVARJxd5sx05DU15pRZbYZSeW2frIbaVJIOJodB96sfjfJaA2dHXje7
 35K0HTls+Bv9IVDYtM10sOjLbZVm9m79pfXAqs1SzcLMzPqXjlsW3MzMms/BwszMKjlYmJlZJQcL
 MzOr5GBhZmaVHCzMzKzS/wMfvBU7sWXZtgAAAABJRU5ErkJggg==
-"></p>
-<h2>cbor</h2>
-<div class="highlight"><pre><span></span><span class="n">plot_benchmark</span><span class="p">(</span><span class="n">benches</span><span class="p">[</span><span class="s1">&#39;cbor&#39;</span><span class="p">])</span>
-</pre></div>
+"&gt;&lt;/p&gt;
+&lt;h2&gt;cbor&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;plot_benchmark&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;benches&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;cbor&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
 
 
-<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYsAAAD8CAYAAACGsIhGAAAABHNCSVQICAgIfAhkiAAAAAlwSFlz
+&lt;p&gt;&lt;img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYsAAAD8CAYAAACGsIhGAAAABHNCSVQICAgIfAhkiAAAAAlwSFlz
 AAALEgAACxIB0t1+/AAAIABJREFUeJzt3XeYVOXZx/HvLShVsYOCigUrAhaMJq+yEIldib1jiRp7
 olGT2LBibLFHsUTFEhWMKFFjLKvYMRhQlKYS0AiiqHQR9n7/uM9hh2V3zy7s7szs/j7XNdfOnDL7
 nJkz5376MXdHRESkOivlOwEiIlL4FCxERCSTgoWIiGRSsBARkUwKFiIikql5vhNQH8xMXbxERJaD
@@ -682,13 +681,13 @@ RTNnVUOo0Qhuj3sRONGwe6a7vwKNp64yi0fX31FmdltTON4cFxNTGwxJLhCl+U1Og7mAKElOBG51
 99vynJ688PIR+j8QAZPGHigA3H1wMmamKO+pUV+WtxrKkn0bZTFUypnZmUQ36Cb1o7G418Bgj/tm
 N1lmtg/RbfiPTSFQSNVqHSwac12liCytqdQeSLblKlmIiEjTUnTTgouISMNTsBARkUwKFiIikknB
 QkREMilYiIhIJgULERHJ9P/iARFGdsGHOwAAAABJRU5ErkJggg==
-"></p>
-<h2>clap</h2>
-<div class="highlight"><pre><span></span><span class="n">plot_benchmark</span><span class="p">(</span><span class="n">benches</span><span class="p">[</span><span class="s1">&#39;clap&#39;</span><span class="p">])</span>
-</pre></div>
+"&gt;&lt;/p&gt;
+&lt;h2&gt;clap&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;plot_benchmark&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;benches&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;clap&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
 
 
-<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYsAAAD8CAYAAACGsIhGAAAABHNCSVQICAgIfAhkiAAAAAlwSFlz
+&lt;p&gt;&lt;img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYsAAAD8CAYAAACGsIhGAAAABHNCSVQICAgIfAhkiAAAAAlwSFlz
 AAALEgAACxIB0t1+/AAAIABJREFUeJzt3XecVOX1x/HPAVQEBMUCShFQsDeMiknUtcVCjIg9arDE
 ROwlavwpijFqgiWWaCyxt6ioMVEsMbr2XrBEpIioKIgIsgvSz++Pc4cdhl3uLjtM2f2+X6997czc
 O7PPnZ255zlPu+buiIiILE2LYhdARERKn4KFiIikUrAQEZFUChYiIpJKwUJERFK1KnYBlgcz0xAv
@@ -911,13 +910,13 @@ iZ8QSwu/nLTVNnkWCxye7e7Dk3HyOxDNby8WuWjLVXKyOIxYOvp+Its4nrgeS9lnzPWVFTBeAq5x
 lcUtTsGcTWSSY4Br3f2vRS5PUXjNDP05RMCkqQcKAHe/K5kzU5bX1FhelrUZypLnNsk0VGqY2UnE
 MOhm9aWxuNbAXR7XzW62zKw/MWz4/5pDoJC6NThYNOW2ShFZXHNpPZB0y5RZiIhI81J2y4KLiEjh
 KViIiEgqBQsREUmlYCEiIqkULEREJJWChYiIpPp/EE1seFWaYUoAAAAASUVORK5CYII=
-"></p>
-<h2>crc</h2>
-<div class="highlight"><pre><span></span><span class="n">plot_benchmark</span><span class="p">(</span><span class="n">benches</span><span class="p">[</span><span class="s1">&#39;crc&#39;</span><span class="p">])</span>
-</pre></div>
+"&gt;&lt;/p&gt;
+&lt;h2&gt;crc&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;plot_benchmark&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;benches&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;crc&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
 
 
-<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYsAAAD8CAYAAACGsIhGAAAABHNCSVQICAgIfAhkiAAAAAlwSFlz
+&lt;p&gt;&lt;img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYsAAAD8CAYAAACGsIhGAAAABHNCSVQICAgIfAhkiAAAAAlwSFlz
 AAALEgAACxIB0t1+/AAAIABJREFUeJzt3XmYXGWZxuHfk+6QfQESIAn7NuyboqCDNJssQRZFRR0H
 0UERQRRGHUaBMI7iRFBAGCUqgyLjoKxjBESEliAiICObYiCAhBASCCRk7yT9zh/vqXSl6eQE6HRV
 dT/3ddXVVXVOVX/fqVPn/fZSRGBmZrYm/WqdADMzq38OFmZmVsrBwszMSjlYmJlZKQcLMzMr1Vzr
@@ -1098,13 +1097,13 @@ EQTZsXtaRNwJvaetskzk0N8HJV3aF/Jb5WxyaYNriwtEa22T02O+RNYknwC+ExGX1jg9NREdM/SX
 kgGT3h4oACLiqmLOTEP+psa68kaboVS8tldWQ62DpNPIYdB96kuj/K2BqyJ/N7vPkjSeHDb8r30h
 UNjqve5g0ZvbKs1sVX2l9cDKvaGahZmZ9S0Ntyy4mZn1PAcLMzMr5WBhZmalHCzMzKyUg4WZmZVy
 sDAzs1L/DzxKGrhJPYBtAAAAAElFTkSuQmCC
-"></p>
-<h2>csv</h2>
-<div class="highlight"><pre><span></span><span class="n">plot_benchmark</span><span class="p">(</span><span class="n">benches</span><span class="p">[</span><span class="s1">&#39;csv&#39;</span><span class="p">])</span>
-</pre></div>
+"&gt;&lt;/p&gt;
+&lt;h2&gt;csv&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;plot_benchmark&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;benches&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;csv&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
 
 
-<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYsAAAD8CAYAAACGsIhGAAAABHNCSVQICAgIfAhkiAAAAAlwSFlz
+&lt;p&gt;&lt;img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYsAAAD8CAYAAACGsIhGAAAABHNCSVQICAgIfAhkiAAAAAlwSFlz
 AAALEgAACxIB0t1+/AAAIABJREFUeJzt3XeYVOXZx/HvDQgqIIKoIFgQIYIoNtSIxrVHrFFjjbFF
 o4ndqImx4GuwoMZuACv2gjVG7K7BXmPBQhHFAipFpUrZ+/3jPsMOyy5ngd05M7u/z3XttXvmnJl9
 zsyZ5376MXdHRERkcZpknQARESl+ChYiIpJKwUJERFIpWIiISCoFCxERSdUs6wTUBzPTEC8RkaXg
@@ -1324,13 +1323,13 @@ p60yjcfQ33fM7LrGcL55ziWWNhiWZBDl2SanYM4iapKjgWvd/bqM05MJr5yh/zMRMGnogQLA3e9I
 5syU5D016svSNkNZ8twGWQ2VSmZ2IjEMulF9aSzuNXCHx32zGy0z250YNnx2YwgUUrMlDhYNua1S
 RBbWWFoPJN1S1SxERKRxKbllwUVEpPAULEREJJWChYiIpFKwEBGRVAoWIiKSSsFCRERS/T8vF/qh
 ImOh+AAAAABJRU5ErkJggg==
-"></p>
-<h2>hyper</h2>
-<div class="highlight"><pre><span></span><span class="n">plot_benchmark</span><span class="p">(</span><span class="n">benches</span><span class="p">[</span><span class="s1">&#39;hyper&#39;</span><span class="p">])</span>
-</pre></div>
+"&gt;&lt;/p&gt;
+&lt;h2&gt;hyper&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;plot_benchmark&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;benches&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;hyper&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
 
 
-<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYsAAAD8CAYAAACGsIhGAAAABHNCSVQICAgIfAhkiAAAAAlwSFlz
+&lt;p&gt;&lt;img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYsAAAD8CAYAAACGsIhGAAAABHNCSVQICAgIfAhkiAAAAAlwSFlz
 AAALEgAACxIB0t1+/AAAIABJREFUeJzt3XeYXGXZx/HvLwktAUMLJbRQpSQE6coLLAhKUemiKNKk
 WkAQsSBEUfCNoPRXUFBEVJAqEQUiLERRqkDoSJFiSJAgkFBCkvv94z6TnWx2c3bJ7pTd3+e69tqZ
 OWdmnzMze+7nuZ9yFBGYmZnNz4B6F8DMzBqfg4WZmZVysDAzs1IOFmZmVsrBwszMSg2qdwF6gyQP
@@ -1519,13 +1518,13 @@ QeS1n4+L5l0Ft9uqWhf7At+LiLWVqzG8Vr29zsXsFZJeBI6JiN9pPus/9TddbVkMItfm35UcOvYw
 vk0ubXBlcYJorW9xauYEsiX5JHBORJxb5/LURbTN0H+HDJj09UABEBGXFnNmmvKaGr3lvaahVDy3
 TzZDrY2kL5HDoPvVP43yWgOXRl43u9+StCs5bPib/SFQWOe6HSz6cq7SzObWX7IHVu49tSzMzKx/
 abplwc3MrPYcLMzMrJSDhZmZlXKwMDOzUg4WZmZWysHCzMxK/T+xhmgP7ff8DwAAAABJRU5ErkJg
-gg=="></p>
-<h2>itertools</h2>
-<div class="highlight"><pre><span></span><span class="n">plot_benchmark</span><span class="p">(</span><span class="n">benches</span><span class="p">[</span><span class="s1">&#39;itertools&#39;</span><span class="p">])</span>
-</pre></div>
+gg=="&gt;&lt;/p&gt;
+&lt;h2&gt;itertools&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;plot_benchmark&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;benches&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;itertools&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
 
 
-<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYsAAAD8CAYAAACGsIhGAAAABHNCSVQICAgIfAhkiAAAAAlwSFlz
+&lt;p&gt;&lt;img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYsAAAD8CAYAAACGsIhGAAAABHNCSVQICAgIfAhkiAAAAAlwSFlz
 AAALEgAACxIB0t1+/AAAIABJREFUeJzt3XeYVOXZx/HvDagIIioqAorYUBCx96Bri4oa0ViiRtEY
 Y+8ao7GgvorB2FuwRUVjQ5GI3eAqYmwxaCyIgo2iSJNe937/uM+ww7rsoczumdn9fa5rr92Zc2b2
 eaY899OPuTsiIiI1aZR1AkREpPgpWIiISCoFCxERSaVgISIiqRQsREQkVZOsE1AbzExTvEREloG7
@@ -1726,13 +1725,13 @@ iK2jHydaG6cR12Mp+RbzksoLGG8Ct7r7E/WxQliVmR0LPODuJbNnVV1YohXcHtcicGJg90x3fw3q
 T19lGo+pvx+Y2e0NIb95LiO2NuifFBDl2SanzlxEtCS/AG5z99szTk8mvHKF/hwiYFLfAwWAu/dL
 1syU5DU1asuydkNZ8th62QyVSmZ2JjENukF9aSyuNdDP47rZDZaZHUBMG76kIQQKWbylDhb1ua9S
 RBbVUHoPJN0ytSxERKRhKbltwUVEpO4pWIiISCoFCxERSaVgISIiqRQsREQklYKFiIik+n/SKQuY
-2AIpdwAAAABJRU5ErkJggg=="></p>
-<h2>memchr</h2>
-<div class="highlight"><pre><span></span><span class="n">plot_benchmark</span><span class="p">(</span><span class="n">benches</span><span class="p">[</span><span class="s1">&#39;memchr&#39;</span><span class="p">])</span>
-</pre></div>
+2AIpdwAAAABJRU5ErkJggg=="&gt;&lt;/p&gt;
+&lt;h2&gt;memchr&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;plot_benchmark&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;benches&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;memchr&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
 
 
-<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYsAAAD8CAYAAACGsIhGAAAABHNCSVQICAgIfAhkiAAAAAlwSFlz
+&lt;p&gt;&lt;img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYsAAAD8CAYAAACGsIhGAAAABHNCSVQICAgIfAhkiAAAAAlwSFlz
 AAALEgAACxIB0t1+/AAAIABJREFUeJzt3XecnGW5//HPNwmQBqEEKaGX0EJTaSqytEMVqSJKETwi
 CAhiQc9RCceCB0GpRwFBFFREqgdQAWEhglLkSIAfMZTQIoIkQBot7PX747onmSybPCmbnZnd7/v1
 mtfOzPPM7H3PPPNcd38UEZiZmc1Lv0YnwMzMmp+DhZmZVXKwMDOzSg4WZmZWycHCzMwqDWh0AhYH
@@ -1900,13 +1899,13 @@ lNeW+CC5tPDdpa2211MucHhKRFxdxslvTza/jWlw0harcrL4JLl09K/J2sbnyOuxtHyNeX7VBYw/
 AedGxFW9sUDYmaTDgMsiomXWrOoJ8zWDO/JaBEF27J4QEXdA72mrrBI59PdBSef3hfzW+Qa5tMHV
 5QTR3tjk9JhTyJrk48B5EXF+g9PTEDF7hv6bZMCktwcKgIi4vMyZaclraiwuC9sMpfLaXlkNtdkk
 nUAOg+5TPxrltQYuj7xudp8laS9y2PB/9IVAYXO3wMGiN7dVmtmc+krrgVVbqJqFmZn1LS23LLiZ
-mfU8BwszM6vkYGFmZpUcLMzMrJKDhZmZVXKwMDOzSv8fNYtjEQmIPHUAAAAASUVORK5CYII="></p>
-<h2>ndarray</h2>
-<div class="highlight"><pre><span></span><span class="n">plot_benchmark</span><span class="p">(</span><span class="n">benches</span><span class="p">[</span><span class="s1">&#39;ndarray&#39;</span><span class="p">])</span>
-</pre></div>
+mfU8BwszM6vkYGFmZpUcLMzMrJKDhZmZVXKwMDOzSv8fNYtjEQmIPHUAAAAASUVORK5CYII="&gt;&lt;/p&gt;
+&lt;h2&gt;ndarray&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;plot_benchmark&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;benches&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;ndarray&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
 
 
-<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYsAAAD8CAYAAACGsIhGAAAABHNCSVQICAgIfAhkiAAAAAlwSFlz
+&lt;p&gt;&lt;img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYsAAAD8CAYAAACGsIhGAAAABHNCSVQICAgIfAhkiAAAAAlwSFlz
 AAALEgAACxIB0t1+/AAAIABJREFUeJzt3XeYXGX5//H3TUINEJAWCL1Eeg+CimyQ/GgiLRKKGIog
 Ik0RFL+UaKSIgFQVEAQBEQwgEgEBw0IApQgJTQwdgvQaQgnJfn5/3GeSybKbsyGbnZndz+u69tqZ
 OefMPM+Ucz/9hCTMzMxmZq5aJ8DMzOqfg4WZmZVysDAzs1IOFmZmVsrBwszMSvWudQLmhIjwEC8z
@@ -2091,13 +2090,13 @@ PZaGrzF3VFXAuAs4W9LV3bFA2FpE7A1cIqlh1qzqCh2awa28FoHIjt1DJd0O3aetsoxy6O+DEXFu
 T8hvlePIpQ1GFieI5tomp8v8iKxJPgmcI+ncGqenJjR9hv7HZMCkuwcKAEmXFXNmGvKaGnPKZ22G
 iuLYblkNteki4lByGHSP+tFEXmvgMuV1s3usiNieHDb8k54QKKx9sxwsunNbpZnNqKe0Hli5z1Sz
 MDOznqXhlgU3M7Ou52BhZmalHCzMzKyUg4WZmZVysDAzs1IOFmZmVur/AyevurtcY61HAAAAAElF
-TkSuQmCC"></p>
-<h2>num</h2>
-<div class="highlight"><pre><span></span><span class="n">plot_benchmark</span><span class="p">(</span><span class="n">benches</span><span class="p">[</span><span class="s1">&#39;num&#39;</span><span class="p">])</span>
-</pre></div>
+TkSuQmCC"&gt;&lt;/p&gt;
+&lt;h2&gt;num&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;plot_benchmark&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;benches&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;num&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
 
 
-<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYsAAAD8CAYAAACGsIhGAAAABHNCSVQICAgIfAhkiAAAAAlwSFlz
+&lt;p&gt;&lt;img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYsAAAD8CAYAAACGsIhGAAAABHNCSVQICAgIfAhkiAAAAAlwSFlz
 AAALEgAACxIB0t1+/AAAIABJREFUeJzt3XeYXGX5xvHvQ0JLIKEHEggQIBIMRRBEFNkgSBekiIh0
 6VIEEUFKsAAiIFUEpSigokCI0qUsvYM0yS+EIkU6hDQgZe/fH8+Z7GSzyUnZ7Ozs3p/rmmtn5pR9
 35lzzvPWMyEJMzOzmZmv1gkwM7OOz8HCzMxKOViYmVkpBwszMyvlYGFmZqW61zoB80JEeIiXmdkc
@@ -2293,13 +2292,13 @@ yYEJGxavu5O//Xy06vcuuLOtqnaxK/ALSatF3o3h4+rlNU7mPBERbwJHSvp7zOT+T13NrNYsupP3
 yYi4oCvkt8qJ5K0Nri0uEI21TU67OZasSb4InC/pghqnpybUPEP/MzJg0tkDBYCkK4s5M3X5mxrz
 ypw2Q0WxbaeshlqziDiMHAbdpU6ayN8auFL5u9ldVkRsQw4bPr4rBAqbsdkOFp25rdLMptVVWg+s
 3BzVLMzMrGupu9uCm5lZ+3OwMDOzUg4WZmZWysHCzMxKOViYmVkpBwszMyv1/4p33dxCzywWAAAA
-AElFTkSuQmCC"></p>
-<h2>optional</h2>
-<div class="highlight"><pre><span></span><span class="n">plot_benchmark</span><span class="p">(</span><span class="n">benches</span><span class="p">[</span><span class="s1">&#39;optional&#39;</span><span class="p">])</span>
-</pre></div>
+AElFTkSuQmCC"&gt;&lt;/p&gt;
+&lt;h2&gt;optional&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;plot_benchmark&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;benches&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;optional&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
 
 
-<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYsAAAD8CAYAAACGsIhGAAAABHNCSVQICAgIfAhkiAAAAAlwSFlz
+&lt;p&gt;&lt;img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYsAAAD8CAYAAACGsIhGAAAABHNCSVQICAgIfAhkiAAAAAlwSFlz
 AAALEgAACxIB0t1+/AAAIABJREFUeJzt3Xe4XFW5x/Hvj4QEEiAmEOkhoUSBEJoUC3JoIiCCiGK5
 XMSCgiIIoqICsaIIihQvoGABryIBxIugiHIA6UhTBEOVEBMCAdIh7b1/vGuS4XCSnZCTMzPn/D7P
 M8+Zmb1nzloze6931T2KCMzMzJZkpUYnwMzMmp+DhZmZVXKwMDOzSg4WZmZWycHCzMwq9W10AlYE
@@ -2474,13 +2473,13 @@ fKb05/V4yt+WeCt5aeFbSl9tj6e8wOEXI2JsmSe/C9n9dnODk7ZClcLiw+Sloy8lWxtHkb/H0vIt
 dU4iL20wthQQ7Y1NTrf5ItmSfAQ4OyLOaXB6GiIWrdB/mQyY9PRAARARF5c1My35mxorymvthlJ5
 bY9shtoiko4mp0H3qpNG+VsDF0f+bnavJWk/ctrwl3tDoLDFW+Zg0ZP7Ks3slXpL74FVe00tCzMz
 611a7rLgZmbW/RwszMyskoOFmZlVcrAwM7NKDhZmZlbJwcLMzCr9P4CrNcs7UHbKAAAAAElFTkSu
-QmCC"></p>
-<h2>permutohedron</h2>
-<div class="highlight"><pre><span></span><span class="n">plot_benchmark</span><span class="p">(</span><span class="n">benches</span><span class="p">[</span><span class="s1">&#39;permutohedron&#39;</span><span class="p">])</span>
-</pre></div>
+QmCC"&gt;&lt;/p&gt;
+&lt;h2&gt;permutohedron&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;plot_benchmark&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;benches&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;permutohedron&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
 
 
-<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYsAAAD8CAYAAACGsIhGAAAABHNCSVQICAgIfAhkiAAAAAlwSFlz
+&lt;p&gt;&lt;img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYsAAAD8CAYAAACGsIhGAAAABHNCSVQICAgIfAhkiAAAAAlwSFlz
 AAALEgAACxIB0t1+/AAAIABJREFUeJzt3XmYXFWZx/HvLwkQEiAgKkLYBYY9uMCgDtJsKqCAgIow
 TATHHQRXxhmRICM4URFBRgFBFtFBWUQjKiI2ooiozIBsBhCHRcSRLUCAhOSdP95T6aLpzg1Jd997
 u3+f5+mnq+reqj6nq+q+97xnuYoIzMzMFmdc3QUwM7Pmc7AwM7NKDhZmZlbJwcLMzCo5WJiZWaUJ
@@ -2641,13 +2640,13 @@ LK1vMS+proDxC+DkiPj2aDwh7E/SwcDZEdGaNatGwhLN4I68FkGQHbuHR8TPYPTkKqtEDv29XtKX
 x0J9uxxNLm1wYTlA9NZbnBFzFNmSvB04JSK+XHN5ahF9M/SfJgMmoz1QAETEeWXOTCuvqTFcljYN
 pfLcUdkMtT6SDieHQY+pL43yWgPnRV43e8yStCc5bPhfx0KgsME972AxmnOVZvZsYyV7YNWWqmVh
 ZmZjS+uWBTczs5HnYGFmZpUcLMzMrJKDhZmZVXKwMDOzSg4WZmZW6f8BF/DvHEnlN4IAAAAASUVO
-RK5CYII="></p>
-<h2>quickersort</h2>
-<div class="highlight"><pre><span></span><span class="n">plot_benchmark</span><span class="p">(</span><span class="n">benches</span><span class="p">[</span><span class="s1">&#39;quickersort&#39;</span><span class="p">])</span>
-</pre></div>
+RK5CYII="&gt;&lt;/p&gt;
+&lt;h2&gt;quickersort&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;plot_benchmark&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;benches&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;quickersort&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
 
 
-<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYsAAAD8CAYAAACGsIhGAAAABHNCSVQICAgIfAhkiAAAAAlwSFlz
+&lt;p&gt;&lt;img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYsAAAD8CAYAAACGsIhGAAAABHNCSVQICAgIfAhkiAAAAAlwSFlz
 AAALEgAACxIB0t1+/AAAIABJREFUeJzt3Xm8lGXdx/HPVw6ioOKOAoIruZC4i6V5NHdLzSXTMrLd
 cisrs1wwS0tb1MzU0jT1KU1Tnwd302Mk5R6kaSoqiruEC4Igh9/zx+8ezng8cIMczsyc832/XvM6
 M3PfM+e6Zrl+1z6KCMzMzOZniVonwMzM6p+DhZmZlXKwMDOzUg4WZmZWysHCzMxKNdU6AYuDJE/x
@@ -2830,13 +2829,13 @@ J3OxkPQccHRE/Enz2f+pp1nQlkUTuTf/nuTUsYeBw4v+vG5P+dsSHya3Fr6r6Kvt9pQbHB4bEVcV
 BVrBHflbBEEO7B4REXdA9+mrLBM59fcBSef0hPxWOYHc2uCqooBoqW1yusyxZEvyceCXEXFOjdNT
 E9G2Qn8mGTDp7oECICIuLdbMNORvaiwu77cbSsVju2Uz1NpIOoKcBt2jvjTK3xq4NPJ3s3ssSXuS
 04a/1xMChc3bQgeL7txXaWbv1lN6D6zc+2pZmJlZz9Jw24KbmVnXc7AwM7NSDhZmZlbKwcLMzEo5
-WJiZWSkHCzMzK/X/SjfkKeLo22gAAAAASUVORK5CYII="></p>
-<h2>rand</h2>
-<div class="highlight"><pre><span></span><span class="n">plot_benchmark</span><span class="p">(</span><span class="n">benches</span><span class="p">[</span><span class="s1">&#39;rand&#39;</span><span class="p">])</span>
-</pre></div>
+WJiZWSkHCzMzK/X/SjfkKeLo22gAAAAASUVORK5CYII="&gt;&lt;/p&gt;
+&lt;h2&gt;rand&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;plot_benchmark&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;benches&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;rand&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
 
 
-<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYsAAAD8CAYAAACGsIhGAAAABHNCSVQICAgIfAhkiAAAAAlwSFlz
+&lt;p&gt;&lt;img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYsAAAD8CAYAAACGsIhGAAAABHNCSVQICAgIfAhkiAAAAAlwSFlz
 AAALEgAACxIB0t1+/AAAIABJREFUeJzt3XmYXFWZx/HvLwkhJIQACWsIhHXYQRQEHaTZlE0BBVEc
 RUBQUERhcJlhCcMoiuICOMOiDBBXZFVERcRGBJVNQVFEQjCAAQIEsqdJ8s4f76l0penkZul0VXX/
 Ps9TT1fVvVV9Tt3lPeu9igjMzMyWZECjE2BmZs3PwcLMzCo5WJiZWSUHCzMzq+RgYWZmlQY1OgEr
@@ -3009,13 +3008,13 @@ H2oJ13/qb5a2ZjGIvDb/weTQsUeAj5X2vD5PeW+JN5OXFr67tNX2ecoLHH46Iq4r4+T3JJvf7mpw
 sXtKRPwK+k5bZZXIob8PSrqkP+S3zlnkpQ2uKyeI9sYmp9d8mqxJ/h24OCIuaXB6GiI6Z+jPJQMm
 fT1QAETE+DJnpiXvqbGyLG8zlMpn+2Q11DpJOoUcBt2vDhrlvQbGR943u9+SdDA5bPg/+kOgsMVb
 5mDRl9sqzWxR/aX1wKotV83CzMz6l5a7LLiZmfU+BwszM6vkYGFmZpUcLMzMrJKDhZmZVXKwMDOz
-Sv8PkvFDPot1TdgAAAAASUVORK5CYII="></p>
-<h2>rayon</h2>
-<div class="highlight"><pre><span></span><span class="n">plot_benchmark</span><span class="p">(</span><span class="n">benches</span><span class="p">[</span><span class="s1">&#39;rayon&#39;</span><span class="p">])</span>
-</pre></div>
+Sv8PkvFDPot1TdgAAAAASUVORK5CYII="&gt;&lt;/p&gt;
+&lt;h2&gt;rayon&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;plot_benchmark&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;benches&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;rayon&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
 
 
-<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYsAAAD8CAYAAACGsIhGAAAABHNCSVQICAgIfAhkiAAAAAlwSFlz
+&lt;p&gt;&lt;img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYsAAAD8CAYAAACGsIhGAAAABHNCSVQICAgIfAhkiAAAAAlwSFlz
 AAALEgAACxIB0t1+/AAAIABJREFUeJzt3XeYXGX5xvHvQ0IvofcuREroBBEEQgQREES6VFHpVRAR
 pQQRI02pCggIBFBKKFJFIAsBlCKhyI/QuxQh9CSk7P374zmTnSy7OZtkszOze3+ua6/MzDln8r5T
 3uftE5IwMzObkplqnQAzM6t/DhZmZlbKwcLMzEo5WJiZWSkHCzMzK9W71gmYESLCU7zMzKaBpGjr
@@ -3203,13 +3202,13 @@ Ng4if4+l4VvMHVUVMB4AzpF0bXesELYWEXsCl0lqmD2rukKHVnArf4tA5MDuoZKGQffpqyyjnPr7
 eESc1xPyW+V4cmuD64sCoqm2yekyx5AtyReAcyWdV+P01IRaVuh/QQZMunugAJA0pFgz05C/qTGj
 TGs3VBTXdstmqLWIiEPJadA96ksT+VsDQ5S/m91jRcTW5LThX/SEQGHtm+pg0Z37Ks1scj2l98DK
 TVPLwszMepaG2xbczMy6noOFmZmVcrAwM7NSDhZmZlbKwcLMzEo5WJiZWan/B21S/bnBvrQOAAAA
-AElFTkSuQmCC"></p>
-<h2>regex</h2>
-<div class="highlight"><pre><span></span><span class="n">plot_benchmark</span><span class="p">(</span><span class="n">benches</span><span class="p">[</span><span class="s1">&#39;regex&#39;</span><span class="p">])</span>
-</pre></div>
+AElFTkSuQmCC"&gt;&lt;/p&gt;
+&lt;h2&gt;regex&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;plot_benchmark&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;benches&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;regex&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
 
 
-<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYsAAAD8CAYAAACGsIhGAAAABHNCSVQICAgIfAhkiAAAAAlwSFlz
+&lt;p&gt;&lt;img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYsAAAD8CAYAAACGsIhGAAAABHNCSVQICAgIfAhkiAAAAAlwSFlz
 AAALEgAACxIB0t1+/AAAIABJREFUeJzt3XeYXGX5xvHvQwKEjqEECC2UUKUpVZGlSe8ICAKCAoKF
 JiIIEgRBI70pIPzEAFICSFEIAi4gTZoJIqFJJ1QhkE6y9++P50x2smxyUjY7M7v357r22pk5Z2be
 d+bMed5+QhJmZmbTMketE2BmZvXPwcLMzEo5WJiZWSkHCzMzK+VgYWZmpXrWOgGzQ0R4iJeZ2UyQ
@@ -3413,13 +3412,13 @@ Nr89WOOkzVbFyWI/cuno68naxhHk9VgavsY8vaoCxj+ACyTd0BULhG1FxP7AHyQ1zJpVnWG6ZnAr
 r0UgsmP3h5L+Dl2nrbKMcujvUxFxUXfIb5WTyaUNBhcniObaJqfTHE/WJF8ELpR0UY3TUxNqnaE/
 ngyYdPVAASBpUDFnpiGvqTG7zGwzVBTP7ZLVUGsVET8kh0F3qx9N5LUGBimvm91tRcQO5LDhE7tD
 oLCpm+Fg0ZXbKs1sSt2l9cDKzVTNwszMupeGWxbczMw6n4OFmZmVcrAwM7NSDhZmZlbKwcLMzEo5
-WJiZWan/B0IMEhXcIQqJAAAAAElFTkSuQmCC"></p>
-<h2>simd</h2>
-<div class="highlight"><pre><span></span><span class="n">plot_benchmark</span><span class="p">(</span><span class="n">benches</span><span class="p">[</span><span class="s1">&#39;simd&#39;</span><span class="p">])</span>
-</pre></div>
+WJiZWan/B0IMEhXcIQqJAAAAAElFTkSuQmCC"&gt;&lt;/p&gt;
+&lt;h2&gt;simd&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;plot_benchmark&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;benches&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;simd&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
 
 
-<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYsAAAD8CAYAAACGsIhGAAAABHNCSVQICAgIfAhkiAAAAAlwSFlz
+&lt;p&gt;&lt;img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYsAAAD8CAYAAACGsIhGAAAABHNCSVQICAgIfAhkiAAAAAlwSFlz
 AAALEgAACxIB0t1+/AAAIABJREFUeJzt3XeYVOXZx/HvLaBIEVFRATuKDdFoUBODLir2Fru+9hY7
 do0VoxGDvSVWUtQYDVgiNrCsvZNYSBBUFClKUekI7N7vH/cZZnbY3bMLy87M7u9zXXPtnDKzzzlz
 5rmfesbcHRERkdosV+gEiIhI8VOwEBGRVAoWIiKSSsFCRERSKViIiEiqloVOwLJgZhriJSKyBNzd
@@ -3630,13 +3629,13 @@ wHgDuN3dH2uKBcJ8ZnY08Bd3L5l7VjWGOs3g9vgtAic6ds9y91eg6bRVpvEY+jvCzO5sDseb4wri
 1gaDkwyivLDJaTQXEzXJMcAd7n5ngdNTEJ6dof8TETBp6oECwN0fTObMlORvaiwrS9oMZclrm2Q1
 VLLM7CxiGHSz+tJY/NbAgx6/m91smdnexLDhS5tDoJCa1TtYNOW2ShGpqrm0Hki6JapZiIhI81Jy
 twUXEZHGp2AhIiKpFCxERCSVgoWIiKRSsBARkVQKFiIikur/AcgBUxQJXb2oAAAAAElFTkSuQmCC
-"></p>
-<h2>suffix</h2>
-<div class="highlight"><pre><span></span><span class="n">plot_benchmark</span><span class="p">(</span><span class="n">benches</span><span class="p">[</span><span class="s1">&#39;suffix&#39;</span><span class="p">])</span>
-</pre></div>
+"&gt;&lt;/p&gt;
+&lt;h2&gt;suffix&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;plot_benchmark&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;benches&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;suffix&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
 
 
-<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYsAAAD8CAYAAACGsIhGAAAABHNCSVQICAgIfAhkiAAAAAlwSFlz
+&lt;p&gt;&lt;img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYsAAAD8CAYAAACGsIhGAAAABHNCSVQICAgIfAhkiAAAAAlwSFlz
 AAALEgAACxIB0t1+/AAAIABJREFUeJzt3Xm8lGX5x/HPV3BFxX0BF1wgF1xyyyX1iJqh5m4uuZul
 ueZW/XKhLDGT0tRSU9PUyl3TTJD0kPueWyqpkEqCRioKAiLX74/rGRiPBx6Qw5mZc77v1+u8mJnn
 meG+Z7mve38UEZiZmc3MPLVOgJmZ1T8HCzMzK+VgYWZmpRwszMyslIOFmZmV6lrrBMwNkjzFy8zs
@@ -3828,13 +3827,13 @@ MHtWtYdZWsEdeS2CIAd2j42I+6Dj9FWWiZz6+5SkizpDfqucTm5tcFNRQDTXNjnt5ntkS/JfwIUR
 cVGN01MTMX2F/iQyYNLRAwVARFxTrJlpyGtqzC2ftxtKxXM7ZDPUppN0LDkNulP9aJTXGrgm8rrZ
 nZaknchpw//XGQKFzdhsB4uO3FdpZp/WWXoPrNznalmYmVnn0nDbgpuZWftzsDAzs1IOFmZmVsrB
 wszMSjlYmJlZKQcLMzMr9f8YYKQsaJhQ0gAAAABJRU5ErkJggg==
-"></p>
-<h2>uuid</h2>
-<div class="highlight"><pre><span></span><span class="n">plot_benchmark</span><span class="p">(</span><span class="n">benches</span><span class="p">[</span><span class="s1">&#39;uuid&#39;</span><span class="p">])</span>
-</pre></div>
+"&gt;&lt;/p&gt;
+&lt;h2&gt;uuid&lt;/h2&gt;
+&lt;div class="highlight"&gt;&lt;pre&gt;&lt;span&gt;&lt;/span&gt;&lt;span class="n"&gt;plot_benchmark&lt;/span&gt;&lt;span class="p"&gt;(&lt;/span&gt;&lt;span class="n"&gt;benches&lt;/span&gt;&lt;span class="p"&gt;[&lt;/span&gt;&lt;span class="s1"&gt;&amp;#39;uuid&amp;#39;&lt;/span&gt;&lt;span class="p"&gt;])&lt;/span&gt;
+&lt;/pre&gt;&lt;/div&gt;
 
 
-<p><img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYsAAAD8CAYAAACGsIhGAAAABHNCSVQICAgIfAhkiAAAAAlwSFlz
+&lt;p&gt;&lt;img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAYsAAAD8CAYAAACGsIhGAAAABHNCSVQICAgIfAhkiAAAAAlwSFlz
 AAALEgAACxIB0t1+/AAAIABJREFUeJzt3XeYVOXZx/HvLagUERRFiqCIIFbsQY26CmossaCJLQZJ
 1MSKJWrsJBqNGhNrYm/oG3tJsEZlFcUCajAWWEAUQUBBBEREYO/3j/sMO6y7e7YMOzO7v891zbUz
 c8o+Z+bMuZ9+zN0RERGpySr5ToCIiBQ+BQsREUmlYCEiIqkULEREJJWChYiIpGqZ7wSsDGamLl4i
@@ -4055,120 +4054,4 @@ J69bEvd+PsuLdxbcOssqXRwOXObuvS1mY5iXvTzPyVwpzGw6cLq7P2w1zP/U3NS2ZNGSmJt/f6Lr
 S7ZtksVQqWBmpxLdoJvVj8biXgPDPe6b3WyZ2f5Et+Hzm0OgkOrVOVg05bpKEVlRc6k9kHT1KlmI
 iEjzUnTTgouISONTsBARkVQKFiIikkrBQkREUilYiIhIKgULERFJ9f+VgtkjKqRUwQAAAABJRU5E
 rkJggg==
-"></p>
-<div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">datetime</span>
-<span class="kn">import</span> <span class="nn">json</span>
-<span class="kn">import</span> <span class="nn">pandas</span> <span class="kn">as</span> <span class="nn">pd</span>
-<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="kn">as</span> <span class="nn">plt</span>
-<span class="kn">import</span> <span class="nn">matplotlib.dates</span> <span class="kn">as</span> <span class="nn">mdates</span>
-<span class="kn">import</span> <span class="nn">numpy</span> <span class="kn">as</span> <span class="nn">np</span>
-<span class="kn">from</span> <span class="nn">scipy.stats.mstats</span> <span class="kn">import</span> <span class="n">gmean</span>
-
-<span class="n">benches</span> <span class="o">=</span> <span class="p">{}</span>
-
-<span class="c1"># process the JSON saved by secondstring</span>
-<span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="s1">&#39;example-benchmarks.json&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">m</span><span class="p">:</span>
-  <span class="n">manifest_data</span> <span class="o">=</span> <span class="n">json</span><span class="o">.</span><span class="n">loads</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">readlines</span><span class="p">()))</span>
-  <span class="n">raw_benches</span> <span class="o">=</span> <span class="n">manifest_data</span><span class="p">[</span><span class="s1">&#39;benches&#39;</span><span class="p">]</span>
-  <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">raw_benches</span><span class="p">:</span>
-      <span class="n">name</span> <span class="o">=</span> <span class="n">b</span><span class="p">[</span><span class="s1">&#39;name&#39;</span><span class="p">]</span>
-      <span class="n">benches</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="p">{}</span>
-      <span class="n">results</span> <span class="o">=</span> <span class="n">b</span><span class="p">[</span><span class="s1">&#39;results&#39;</span><span class="p">]</span>
-
-      <span class="c1"># for successful benchmarks, accumulate a list of all function average times</span>
-      <span class="k">for</span> <span class="n">date</span><span class="p">,</span> <span class="n">r</span> <span class="ow">in</span> <span class="n">results</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-          <span class="k">if</span> <span class="n">r</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;Success&#39;</span><span class="p">,</span> <span class="bp">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-              <span class="n">bench_run</span> <span class="o">=</span> <span class="n">r</span><span class="p">[</span><span class="s1">&#39;Success&#39;</span><span class="p">][</span><span class="s1">&#39;times&#39;</span><span class="p">]</span>
-              <span class="k">for</span> <span class="n">bench_fn</span> <span class="ow">in</span> <span class="n">bench_run</span><span class="p">:</span>
-                  <span class="k">if</span> <span class="n">date</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">benches</span><span class="p">[</span><span class="n">name</span><span class="p">]:</span>
-                      <span class="n">benches</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="n">date</span><span class="p">]</span> <span class="o">=</span> <span class="p">[]</span>
-
-                  <span class="n">time</span> <span class="o">=</span> <span class="n">bench_run</span><span class="p">[</span><span class="n">bench_fn</span><span class="p">][</span><span class="s1">&#39;avg_time_ns&#39;</span><span class="p">]</span>
-                  <span class="n">benches</span><span class="p">[</span><span class="n">name</span><span class="p">][</span><span class="n">date</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">time</span><span class="p">)</span>
-
-
-<span class="k">def</span> <span class="nf">normalize_against_first</span><span class="p">(</span><span class="n">bench_results</span><span class="p">):</span>
-  <span class="n">tpls</span> <span class="o">=</span> <span class="p">[(</span><span class="n">d</span><span class="p">,</span> <span class="n">avgs</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span><span class="p">,</span> <span class="n">avgs</span> <span class="ow">in</span> <span class="n">bench_results</span><span class="o">.</span><span class="n">items</span><span class="p">()]</span>
-  <span class="n">tpls</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">tpls</span><span class="p">)</span>
-  <span class="n">first</span> <span class="o">=</span> <span class="n">tpls</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
-
-  <span class="n">normalized</span> <span class="o">=</span> <span class="p">{}</span>
-  <span class="k">for</span> <span class="n">date</span><span class="p">,</span> <span class="n">avgs</span> <span class="ow">in</span> <span class="n">bench_results</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
-      <span class="n">normalized</span><span class="p">[</span><span class="n">date</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="n">a</span> <span class="o">/</span> <span class="n">f</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">f</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">avgs</span><span class="p">,</span> <span class="n">first</span><span class="p">[</span><span class="mi">1</span><span class="p">])]</span>
-
-  <span class="k">return</span> <span class="n">normalized</span>
-
-<span class="c1"># prep a pandas dataframe of each benchmark suite</span>
-<span class="k">def</span> <span class="nf">data_frame_for_benchmark</span><span class="p">(</span><span class="n">bench_results</span><span class="p">):</span>
-  <span class="c1"># parse the dates and calculate the geometric mean</span>
-  <span class="n">bench_results</span> <span class="o">=</span> <span class="n">normalize_against_first</span><span class="p">(</span><span class="n">bench_results</span><span class="p">)</span>
-  <span class="n">bench_results</span> <span class="o">=</span> <span class="p">{</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">strptime</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="s1">&#39;%Y-%m-</span><span class="si">%d</span><span class="s1">&#39;</span><span class="p">):</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">bench_results</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
-  <span class="n">bench_results</span> <span class="o">=</span> <span class="p">{</span><span class="n">d</span><span class="p">:</span> <span class="n">gmean</span><span class="p">(</span><span class="n">times</span><span class="p">)</span> <span class="k">for</span> <span class="n">d</span><span class="p">,</span> <span class="n">times</span> <span class="ow">in</span> <span class="n">bench_results</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
-
-  <span class="c1"># create a dataframe for plotting</span>
-  <span class="n">frame</span> <span class="o">=</span> <span class="n">pd</span><span class="o">.</span><span class="n">DataFrame</span><span class="o">.</span><span class="n">from_dict</span><span class="p">(</span><span class="n">bench_results</span><span class="p">,</span> <span class="n">orient</span><span class="o">=</span><span class="s1">&#39;index&#39;</span><span class="p">)</span>
-  <span class="k">if</span> <span class="n">frame</span><span class="o">.</span><span class="n">size</span> <span class="o">&amp;</span><span class="n">gt</span><span class="p">;</span> <span class="mi">0</span><span class="p">:</span>
-      <span class="c1"># sort by date</span>
-      <span class="n">frame</span> <span class="o">=</span> <span class="n">frame</span><span class="o">.</span><span class="n">sort_index</span><span class="p">()</span>
-      <span class="k">return</span> <span class="n">frame</span>
-  <span class="k">else</span><span class="p">:</span>
-      <span class="c1"># handle benchmarks that had all of their functions ignored</span>
-      <span class="k">return</span> <span class="n">kc</span><span class="s2">&quot;&gt;None</span>
-
-<span class="c1"># plot a time series for a given benchmark</span>
-<span class="k">def</span> <span class="nf">plot_benchmark</span><span class="p">(</span><span class="n">bench_times</span><span class="p">):</span>
-  <span class="n">frame</span> <span class="o">=</span> <span class="n">data_frame_for_benchmark</span><span class="p">(</span><span class="n">bench_times</span><span class="p">)</span>
-  <span class="k">if</span> <span class="n">frame</span> <span class="ow">is</span> <span class="ow">not</span> <span class="bp">None</span><span class="p">:</span>
-      <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
-      <span class="n">frame</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">legend</span><span class="o">=</span><span class="bp">False</span><span class="p">)</span>
-      <span class="n">plt</span><span class="o">.</span><span class="n">ylim</span><span class="p">([</span><span class="mf">0.5</span><span class="p">,</span> <span class="mf">1.5</span><span class="p">])</span>
-      <span class="n">plt</span><span class="o">.</span><span class="n">xlim</span><span class="p">([</span><span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2015</span><span class="p">,</span> <span class="mi">9</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="p">(</span><span class="mi">2016</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">11</span><span class="p">)])</span>
-</pre></div>
-  </div>
-  <div class="tag-cloud">
-    <p>
-      <a href="https://dikaiosune.github.io/tag/rust.html">rust</a>
-      <a href="https://dikaiosune.github.io/tag/benchmark.html">benchmark</a>
-      <a href="https://dikaiosune.github.io/tag/performance.html">performance</a>
-    </p>
-  </div>
-</article>
-
-    <footer>
-        <p>&copy; Adam Perry 2016</p>
-<p>Built using <a href="http://getpelican.com" target="_blank">Pelican</a> - <a href="https://github.com/alexandrevicenzi/flex" target="_blank">Flex</a> theme by <a href="http://alexandrevicenzi.com" target="_blank">Alexandre Vicenzi</a></p>    </footer>
-  </main>
-
-<!-- Google Analytics -->
-<script type="text/javascript">
-  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-  })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-  ga('create', 'UA-58451337-2', 'auto');
-  ga('send', 'pageview');
-</script>
-<!-- End Google Analytics -->
-
-
-
-<script type="application/ld+json">
-{
-  "@context": "http://schema.org",
-  "@type": "BlogPosting",
-  "name": "(Almost) 6 Months of Rust Runtime Performance",
-  "headline": "(Almost) 6 Months of Rust Runtime Performance",
-  "datePublished": "2016-02-16 00:00:00-07:00",
-  "dateModified": "",
-  "author": {
-    "@type": "Person",
-    "name": "Adam Perry",
-    "url": "https://dikaiosune.github.io/author/adam-perry.html"
-  },
-  "image": "/theme/img/profile.jpg",
-  "url": "https://dikaiosune.github.io/almost-6-months-rust-runtime-perf.html",
-  "description": "A quick investigation into historical runtime performance of Rust programs."
-}
-</script></body>
-</html>
+"&gt;&lt;/p&gt;</summary><category term="rust"></category><category term="benchmark"></category><category term="performance"></category></entry></feed>
