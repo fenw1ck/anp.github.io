@@ -2,7 +2,7 @@
 layout: post
 title:  "(Almost) 6 Months of Rust Runtime Performance"
 date:   2016-02-16
-categories: rust,benchmark,performance
+categories: rust
 ---
 
 After reading [this issue](https://github.com/rust-lang/rust/issues/31265), I decided to poke around in the history of `rustc`'s runtime performance.

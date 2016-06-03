@@ -2,7 +2,7 @@
 layout: post
 title:  "Measuring Rust Runtime Performance: cargo bench vs. getrusage()"
 date:   2016-02-24
-categories: rust,benchmark,performance
+categories: rust
 ---
 
 *TLDR: Comparing cargo bench results to a slightly more robust method eliminates a lot of the noise, but there still appear to be a few performance regressions that both methods agree on. If someone has the statistics expertise to set me straight or help me take this further or both, please get in touch.*
