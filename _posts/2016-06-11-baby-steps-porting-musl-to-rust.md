@@ -1,6 +1,6 @@
 ---
 layout: post
-title:  "DRAFT Baby Steps: Slowly Porting musl to Rust DRAFT"
+title:  "Baby Steps: Slowly Porting musl to Rust"
 date:   2016-06-11
 categories: rust
 ---
@@ -139,13 +139,13 @@ All of these are built with generally pretty unsafe code (not just in unsafe blo
 
 A whole bunch. Although, perhaps not as much as I'd hoped. It's very easy to get tunnel vision when porting a single 50-line C function without understanding where it fits in with the overall architecture. I think one thing I'm learning about learning-by-porting is that it requires extra work above and beyond the actual porting work in this case -- a mechanical translation doesn't provide a lot of insight about how something is supposed to work. So I'm learning a lot more about what the allocator does by trying out and throwing away various Rustic changes to it.
 
-I'm also learning **just how monumental** an uphill battle the "rewrite everything in Rust camp" has. musl is a pretty small C project by current \*nix infrastructure standards, and it's a giant undertaking which I will probably never ever finish myself.
+I'm also learning **just how monumental** an uphill battle the "rewrite everything in Rust" camp has. musl is a pretty small C project by current \*nix infrastructure standards, and it's a giant undertaking which I will probably never ever finish myself.
 
-However, I do think that rewriting targeted portions of a system in Rust is definitely possible (hell, if I can do it...), and in some cases may be desirable. The talk slides I linked above talk about using a "Golden Master" set of files for testing regressions during rewriting, but I think that I personally wouldn't be very comfortable with doing a C-to-Rust rewrite without either having or building a pretty big regression test suite. Which is of course a catch-22, because if you have a great test suite you may not be writing C code that's *as* in need of a Rust rewrite as other projects. Alas...
+However, I do think that rewriting targeted portions of a system in Rust is definitely possible (hell, if I can do it...), and in some cases may be desirable. The talk slides I linked above talk about using a "Golden Master" set of files for testing regressions during rewriting, but I think that I personally wouldn't be very comfortable with doing a C-to-Rust rewrite without either having or building a pretty big regression test suite. Which is of course a catch-22, because if you have a great test suite you may not be writing C code that would benefit as much from a Rust rewrite as other projects. Alas...
 
 ## What's down the road?
 
-My next goal (having been occupied with other things for a few weeks) is to implement the memory allocator using more Rustic and safe code. This means using RAII-style locks, less pointer magic, and hopefully building a somewhat typesafe linked list interface instead of the bag of functions that currently operate simultaneously on a single static data structure.
+My next goal (having been occupied with other things for a few weeks) is to improve the memory allocator using more Rustic and safe code. This means using RAII-style locks, less pointer magic, and hopefully building a somewhat typesafe linked list interface instead of the bag of functions that currently operate simultaneously on a single static data structure.
 
 I'm hoping to make use of the growing `#![no_std]` crate ecosystem to replace a bunch of C code without having to write much myself (specifically thinking of the Rust libm and libpnet here, but I'm sure there are others).
 
@@ -153,4 +153,4 @@ As I get around to replacing more of the library, I'd like to experiment more wi
 
 ## Comments?
 
-Contact links are in the footer below, and it's also possible you came here from some aggregator if I posted it there, who presumably support comments :). Would love to hear from anyone about this project or other C-to-Rust efforts, or just stuff in general. I'm usually in `#rust` on irc.mozilla.net as `dikaiosune`.
+Contact links are in the footer below, and it's also possible you came here from some aggregator if I posted it there, and said aggregator presumably supports comments that I will be following like an attention-starved child. Would love to hear from anyone about this project or other C-to-Rust efforts, or just stuff in general. I'm usually in `#rust` on irc.mozilla.net as `dikaiosune`.
