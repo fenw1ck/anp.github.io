@@ -61,7 +61,7 @@ Yeah, I get it, I get it. Don't you see the TODO? It passes the tests, and I am 
 
 ## What does Rust offer here?
 
-Because Rust's standard library relies on a C standard library to provide dynamic allocation, I/O, string manipulation, etc, `rusl` has to use `#![no_std]`, disabling the standard libary and reducing the usable types to those things which can run on bare metal. However, while Rust is widely known for memory safety, it still have a lot to offer. All of these could be useful Rust features for this project:
+Because Rust's standard library relies on a C standard library to provide dynamic allocation, I/O, string manipulation, etc, `rusl` has to use `#![no_std]`, disabling the standard libary and reducing the usable types to those things which can run on bare metal. However, while Rust is widely known for memory safety, it still has a lot to offer. All of these could be useful Rust features for this project:
 
 1. cargo + crates makes some things easier. For example, I use code from [syscall](https://github.com/kmcallister/syscall.rs) to generate Linux syscalls without having to write and debug it myself. In the future, I'm hoping to pull in work from [pnet](https://github.com/libpnet/libpnet) and [math](https://github.com/nagisa/math.rs) to reuse community-generated code. I'm also using crates for a few other things, like retrieving vararg parameters when C calls the function, even though Rust doesn't technically provide support for this yet.
 2. Stricter type casting semantics than C, along with clearly defined bit-widths for primitive types.
@@ -71,15 +71,15 @@ Because Rust's standard library relies on a C standard library to provide dynami
 6. Array bounds checking.
 7. Non-text-substitution macros.
 
-Granted, because right now I'm just doing straight source-to-source translation, only the first two items are really proving useful right now. I have been playing around with using RAII-style locks in place of the explicit unlocking that the musl C code requires, and have promising results so far, but nothing yet which passes all of the tests.
+Granted, because right now I'm just doing straight source-to-source translation, only the first two items are really proving useful for the time being. I have been playing around with using RAII-style locks in place of the explicit unlocking that the musl C code requires, and have promising results so far, but nothing yet which passes all of the tests.
 
 Some things which are difficult because they're not yet in Rust:
 
 1. Stable inline assembly support (can be used on nightly for the time being).
 2. `const_fn` support is limited, although will be improving soon.
-3. Untagged union support (RFC accepted, not yet implemented).
+3. Untagged union support ([RFC accepted, not yet implemented](https://github.com/rust-lang/rust/issues/32836)).
 4. Weak linker arguments for function symbols (unstable feature, but lacking documentation, precludes a C program from overriding the rusl standard library functions at link time, functionality which musl supports AFAICT).
-5. Variable arguments (there's no way to make them safe, although some discussion is underway for implementing them for `extern` functions).
+5. Variable arguments (there's no way to make them safe, although IIRC discussion is underway for implementing them for `extern` functions).
 
 ## How am I doing this?
 
