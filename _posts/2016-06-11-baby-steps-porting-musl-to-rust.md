@@ -9,21 +9,9 @@ categories: rust
 
 ## Are you mad?
 
-Let's say that one is hypothetically crazy enough to rewrite part or all of a C project into Rust. Every time a new vulnerability in a C-based program or library hits Hacker News, there are a bunch of calls to just rewrite the world in Rust, but even given unlimited resources, is it actually a reasonable thing to do? How well can Rust actually replace C in C's native domains? What are best practices for managing the risks inherent in a project like that (injecting new bugs/vulnerabilities, missing important edge case functionality, etc.)? 
+Let's say that one is hypothetically crazy enough to rewrite part or all of a C project into Rust. Every time a new vulnerability in a C-based program or library hits Hacker News, there are a bunch of calls to just rewrite the world in Rust, but even given unlimited resources, is it actually a reasonable thing to do? How well can Rust actually replace C in C's native domains? What are best practices for managing the risks inherent in a project like that (injecting new bugs/vulnerabilities, missing important edge case functionality, etc.)?
 
-I don't really know good answers to these questions, but I have been tinkering with this project recently and I thought it was time to put down some of my thoughts about the advantages and pitfalls of a C-to-Rust rewrite project. Also, I recently read [these great talk slides](https://github.com/carols10cents/rust-out-your-c-talk) and thought it was about time to write about the somewhat-related stuff I've been toying with. 
-
-## What project?
-
-[musl](http://www.musl-libc.org/) is, according to its homepage, "a new standard library to power a new generation of Linux-based devices. **musl** is *lightweight, fast, simple, free,* and strives to be *correct* in the sense of standards-conformance and safety."
-
-[Rust](https://www.rust-lang.org) is, according to its homepage, "a systems programming language that runs blazingly fast, prevents segfaults, and guarantees thread safety."
-
-Seems like a nice match! In fact, there's been some great work done to [make Rust executables statically compile with musl as the libc implementation on Linux](http://blog.rust-lang.org/2016/05/13/rustup.html), allowing for fully static Rust Linux binaries (a la Go). musl has also [been cited as an excellent codebase](http://blog.regehr.org/archives/1393) for someone to read when learning C. But wait, if musl's C code is already so great, why rewrite it in Rust?
-
-1. Because I don't know C very well, and I wanted to tinker with a codebase mostly free from preprocessor magic and with sane design and formatting decisions. As an added bonus, musl's source is very well chunked into smaller files with few interdependencies, which means that an incremental porting approach can work well.
-2. musl has a [pretty big test suite](http://wiki.musl-libc.org/wiki/Libc-Test). As a systems programming (whatever that means) novice, I don't want to trust in my non-existent psychic powers to detect regressions that result from my actions.
-3. I thought it'd be fun to have C programs call `malloc()` and execute Rust (and right now, the test suite currently does and passes!). It could also (if I get a heck of a lot further than I have) be a cool test case for demonstrating Rust's potential to improve our current computing infrastructure and ecosystem. 
+I don't really know good answers to these questions, but I have been tinkering with this project recently and I thought it was time to put down some of my thoughts about the advantages and pitfalls of a C-to-Rust rewrite project. Also, I recently read [these great talk slides](https://github.com/carols10cents/rust-out-your-c-talk) and thought it was about time to write about the somewhat-related stuff I've been toying with.
 
 ## Show me some code!
 
@@ -71,27 +59,11 @@ pub unsafe extern "C" fn strlen(s: *const c_schar) -> size_t {
 
 Yeah, I get it, I get it. Don't you see the TODO? It passes the tests, and I am happy. I know it isn't as efficient if it doesn't get autovectorized (and I honestly haven't checked), and I know that returning `usize::MAX` is not semantically correct (even if it *gasp* "shouldn't ever happen" because `0..` returns a really really giant iterator range). I also know that because I don't know C very well I can read the second one in about 10% of the time. *shrug*
 
-## What are the goals of this project?
+## What does Rust offer here?
 
-It's obviously stupid for one junior programmer to try to build their own C standard library, right? Yeah, it is. But there are still a few reasons I'm liking this:
+Because Rust's standard library relies on a C standard library to provide dynamic allocation, I/O, string manipulation, etc, `rusl` has to use `#![no_std]`, disabling the standard libary and reducing the usable types to those things which can run on bare metal. However, while Rust is widely known for memory safety, it still have a lot to offer. All of these could be useful Rust features for this project:
 
-* Learning: I don't know C and its domains very well. In my day job I write back-end web code, data analysis scripts, and bioinformatics tools. Mostly in Python. This seems like a great way to learn about C, how software interacts with the kernel, and what goes into making a standard library.
-* Showing that Rust can do this kind of work (allocators, pthread implementations, etc.), and showing myself that I'm capable of learning how to :).
-* Experimenting with ways to incrementally consume a C library or program from the inside out using Rust's solid C interop support.
-* I'm starting to get a more realistic idea of Rust's current limitations when operating with C (I'm looking at you, unstable inline assembly and unimplemented untagged union support).
-
-There are also a whole bunch of things I have no intention of doing:
-
-* Using [rust-bindgen](https://github.com/crabtw/rust-bindgen) or some other automated tool to generate type declarations or translate code for me. As a learning project, it's much better if I hand-translate everything (which so far is just a tiny portion of the overall codebase).
-* Ever having this code used in production. Ever. No really, ever. The test suite that I'm using has gaps (if you're a POSIX aficionado and a musl fan, I'm sure they'd love help improving the coverage), and while I feel pretty confident about higher-level work I do, I'm dumb as a rock when it comes to pointer math.
-* Supporting any platform other than Linux on x86_64. Or really supporting any platform other than my laptop or desktop.
-* Trying to improve upon what musl actually does. If a bug gets fixed accidentally, then cool. But right now I'm just trying to replicate its behavior nearly exactly in Rust. 
-
-## What does Rust offer here? 
-
-Because Rust's standard library relies on a C standard library to provide dynamic allocation, I/O, string manipulation, etc, `rusl` has to use `#![no_std]`, disabling the standard libary and reducing the usable types to those things which can run on bare metal. However, that doesn't mean that even though Rust is generally known for memory safety and the borrow checker it doesn't have anything on offer. Hypothetically, all of these could be useful Rust features for this project:
-
-1. cargo + crates makes some things easier. For example, I use code from [syscall](https://github.com/kmcallister/syscall.rs) to generate Linux syscalls without having to write and debug it myself. In the future, I'm hoping to pull in work from [pnet](https://github.com/libpnet/libpnet) and [math](https://github.com/nagisa/math.rs) to reuse community-generated code. I'm also using crates for a few other things, like retrieving vararg parameters when C calls the function, even though Rust doesn't technically provide support for this yet. 
+1. cargo + crates makes some things easier. For example, I use code from [syscall](https://github.com/kmcallister/syscall.rs) to generate Linux syscalls without having to write and debug it myself. In the future, I'm hoping to pull in work from [pnet](https://github.com/libpnet/libpnet) and [math](https://github.com/nagisa/math.rs) to reuse community-generated code. I'm also using crates for a few other things, like retrieving vararg parameters when C calls the function, even though Rust doesn't technically provide support for this yet.
 2. Stricter type casting semantics than C, along with clearly defined bit-widths for primitive types.
 3. Sum types (Rust enums) for representing all possible values of a type (like errors).
 4. Immutability-by-default and references which enforce that.
