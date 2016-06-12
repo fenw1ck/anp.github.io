@@ -4,7 +4,7 @@
 baseurl:
 
 # Site live URL
-url: https://dikaiosune.github.io
+url: http://blog.adamperry.me
 
 # Harmony theme configuration. Please change accordingly.
 harmony:
@@ -20,7 +20,7 @@ harmony:
   author: # Author details
     name: Adam Perry
     email: adam.n.perry@gmail.com
-    url: https://dikaiosune.github.io
+    url: http://blog.adamperry.me
 
   # Google Analytics key, leave blank to ignore
   google_analytics_key: UA-58451337-2
