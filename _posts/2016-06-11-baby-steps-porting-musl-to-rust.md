@@ -59,6 +59,24 @@ pub unsafe extern "C" fn strlen(s: *const c_schar) -> size_t {
 
 Yeah, I get it, I get it. Don't you see the TODO? It passes the tests, and I am happy. I know it isn't as efficient if it doesn't get autovectorized (and I honestly haven't checked), and I know that returning `usize::MAX` is not semantically correct (even if it *gasp* "shouldn't ever happen" because `0..` returns a really really giant iterator range). I also know that because I don't know C very well I can read the second one in about 10% of the time. *shrug*
 
+#### Update
+
+So after some comments on HN about needing to return a `usize::MAX` to satisfy Rust's control flow requirements, here's an updated version that still just checks one byte at a time, but reflects the fact that it probably shouldn't return at all unless a null byte is found:
+
+```rust
+#[no_mangle]
+pub unsafe extern "C" fn strlen(s: *const c_schar) -> size_t {
+    // TODO(adam) convert to checking word-size chunks
+    let mut i = 0;
+    loop {
+        if *s.offset(i) == 0 { return i as usize; }
+        i += 1;
+    }
+}
+```
+
+It's still less efficient because it doesn't autovectorize, but I can live with that.
+
 ## What does Rust offer here?
 
 Because Rust's standard library relies on a C standard library to provide dynamic allocation, I/O, string manipulation, etc, `rusl` has to use `#![no_std]`, disabling the standard libary and reducing the usable types to those things which can run on bare metal. However, while Rust is widely known for memory safety, it still has a lot to offer. All of these could be useful Rust features for this project:
