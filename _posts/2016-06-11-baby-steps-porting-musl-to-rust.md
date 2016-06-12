@@ -143,6 +143,6 @@ As I get around to replacing more of the library, I'd like to experiment more wi
 
 ## Comments?
 
-Contact links are in the footer below. Would love to hear from anyone about this project or other C-to-Rust efforts, or just stuff in general. I'm usually in `#rust` on irc.mozilla.net as `dikaiosune`.
+Contact links are in the footer below. Would love to hear from anyone about this project or other C-to-Rust efforts, or just stuff in general. I'm usually in `#rust` on irc.mozilla.org as `dikaiosune`.
 
 *Update*: [I posted this to /r/rust](https://www.reddit.com/r/rust/comments/4nqwfg/baby_steps_slowly_porting_musl_to_rust/), and it looks like someone also [submitted it to Hacker News](https://news.ycombinator.com/item?id=11888885), so conversations may be occurring there.
