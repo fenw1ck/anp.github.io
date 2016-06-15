@@ -14,4 +14,4 @@ Having worked in several application domains, I'm interested in many kinds of te
 
 ### Contact me
 
-Contact links are below. I'm usually `dikaiosune` on IRC (usually on Freenode and also irc.mozilla.org these days in the Rust channels), and `sophrosun3` when I'm occasionally on reddit.
+Contact links are below. I'm usually `dikaiosune` on IRC (usually on Freenode and also irc.mozilla.org in the Rust channels), and `sophrosun3` when I'm occasionally on reddit.
