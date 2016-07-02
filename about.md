@@ -10,7 +10,7 @@ I've worked on projects in areas like bioinformatics and metagenomics, full-stac
 
 ### Hiring?
 
-Having worked in several application domains, I'm interested in many kinds of technical challenges and I'm always interested in hearing about new opportunities. Email is the best way to reach me (listed in this page's footer). My LinkedIn page is usually pretty up to date as a Resume/CV, although I'm happy to provide an updated one upon request.
+Having worked in several application domains, I'm interested in many kinds of technical challenges and I'm always interested in hearing about new opportunities. Email is the best way to reach me (listed in this page's footer). A copy of my CV is linked in the footer.
 
 ### Contact me
 
