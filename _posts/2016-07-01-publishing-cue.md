@@ -5,28 +5,15 @@ date:   2016-07-01
 categories: rust
 ---
 
+I published a quick little crate for long-running "streaming" parallel tasks.
+
 ## Why?
 
 Lately I've been working on a few CLI tools in Rust which do some parallel batch processing of many inputs, and write the results to a file. Putting a lock on a `BufWriter` and writing from worker threads is a bit too clumsy, and when I have ~32 threads, there's sometimes quite a bit of lock contention while waiting for the writes to complete.
 
 So, I've found myself using a pattern like this:
 
-{% digraph pipeline %}
-graph [fontname = "Ubuntu Mono"];
-node [fontname = "Ubuntu Mono"];
-edge [fontname = "Ubuntu Mono"];
-lazy_iterator -> work_queue [ label="blocks when buffer full"]
-work_queue -> work_thread_1
-work_queue -> work_thread_2
-work_queue -> "..."
-work_queue -> work_thread_n
-work_thread_1 -> result_queue
-work_thread_2 -> result_queue
-"..." -> result_queue
-work_thread_n -> result_queue [label="lock-free"]
-result_queue -> join_thread
-join_thread -> "file/socket/etc" [label="potentially blocking"]
-{% enddigraph %}
+![cue pipeline](/assets/img/cue-pipeline.svg)
 
 Since I've been copy-pasting this everywhere and wasn't able to find anything comparable on [crates.io](http://crates.io), I decided to extract it into a library and publish it.
 

@@ -1,0 +1,16 @@
+digraph {
+    graph [fontname = "Ubuntu Mono"];
+    node [fontname = "Ubuntu Mono"];
+    edge [fontname = "Ubuntu Mono"];
+    lazy_iterator -> work_queue [ label="blocks when buffer full"]
+    work_queue -> work_thread_1
+    work_queue -> work_thread_2
+    work_queue -> "..."
+    work_queue -> work_thread_n
+    work_thread_1 -> result_queue
+    work_thread_2 -> result_queue
+    "..." -> result_queue
+    work_thread_n -> result_queue [label="lock-free"]
+    result_queue -> join_thread
+    join_thread -> "file/socket/etc" [label="potentially blocking"]
+}
