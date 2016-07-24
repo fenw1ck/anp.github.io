@@ -351,3 +351,5 @@ Much thanks to `pczarn` and `curtism` in `#rust-offtopic` for kindly taking the 
 Contact links are in the footer below. I’m usually in #rust on irc.mozilla.org as dikaiosune.
 
 I also posted this to [Hacker News](https://news.ycombinator.com/item?id=12153798) and the [/r/rust subreddit](https://www.reddit.com/r/rust/comments/4udxmr/rust_performance_a_story_featuring_perf_and/) if you'd like to discuss it either of those places.
+
+EDIT: My post to HN didn't really get anywhere, but it looks like it's [been resubmitted](https://news.ycombinator.com/item?id=12155000).
