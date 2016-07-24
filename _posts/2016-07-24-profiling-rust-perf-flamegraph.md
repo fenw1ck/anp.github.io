@@ -350,4 +350,4 @@ Much thanks to `pczarn` and `curtism` in `#rust-offtopic` for kindly taking the 
 
 Contact links are in the footer below. I’m usually in #rust on irc.mozilla.org as dikaiosune.
 
-I'll probably post this to a couple of places after publishing, in which case I'll replace this "it's midnight and I'm tired" sentence with links to those comment sections.
+I also posted this to [Hacker News](https://news.ycombinator.com/item?id=12153798) and the [/r/rust subreddit](https://www.reddit.com/r/rust/comments/4udxmr/rust_performance_a_story_featuring_perf_and/) if you'd like to discuss it either of those places.
