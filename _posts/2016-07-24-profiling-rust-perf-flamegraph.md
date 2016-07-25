@@ -338,11 +338,21 @@ Profiling tools are cool! This would have been much harder to investigate withou
 
 Performance of generated code is always going to be a little in flux. And right now there's a lot of attention paid to compiler performance, but AFAIK there's no effort yet to systematically track the performance of compiled Rust programs. I've poked around with that before and didn't get very far, there's the [I-slow label](https://github.com/rust-lang/rust/issues?q=is%3Aissue+is%3Aopen+performance+label%3AI-slow) for issues which gets a lot of attention (so open one if you find bad codegen), as well as a tracking issue for [building a perf regression test suite](https://github.com/rust-lang/rust/issues/31265) which may or may not be progressing.
 
-I am told that whenever MIR gets turned on by default it will enable new optimizations to occur in the Rust front-end before any LLVM IR is generated. This could radically change what sort of manual optimizations have an impact. I tried running these benchmarks with `RUST_FLAGS="-Z orbit"` and didn't see a difference. Assuming I used the correct flag (ha!), MIR trans behaves similarly to the default codegen for this case...for now.
+I am told that whenever MIR gets turned on by default it will enable new optimizations to occur in the Rust front-end before any LLVM IR is generated. This could radically change what sort of manual optimizations have an impact. I tried running these benchmarks with `RUSTFLAGS="-Z orbit"` and didn't see a difference. Assuming I used the correct flag (ha!), MIR trans behaves similarly to the default codegen for this case...for now.
 
-I completely forgot to include measurements or screenshots, but when I tried manually iterating over the slice (not using iterator adapters, but also not using manual indexing), I didn't achieve any significant performance boost over the iterator-adapter version shown here. It certainly bears further investigation.
+I completely forgot to include measurements or screenshots, but when I tried manually iterating over the slice (not using iterator adapters, but also not using manual indexing), I didn't achieve any significant performance boost over the manually indexed version shown here. It certainly bears further investigation. (*it looks like this is probably due to poorly performing vectorization, see Update below*)
 
 If you're writing performance critical code, take it with a grain of salt when Rustaceans tell you that `Vec::get_unchecked` should improve performance. Obviously it's true in many cases (including ones I've recently worked on), but measure, measure...oh I'm tired of writing that.
+
+## Update (7/25/16)
+
+On [/r/rust](https://www.reddit.com/r/rust/), [/u/Aatch](https://www.reddit.com/user/Aatch) did some very in-depth analysis of the assembly output (beyond my ken) and came up with [some very interesting conclusions](https://www.reddit.com/r/rust/comments/4udxmr/rust_performance_a_story_featuring_perf_and/d5plly1). Essentially, removing the bounds checks actually allows the loop to be vectorized, and it's *the SIMD version* which ends up so much slower.
+
+I missed the fact that the documentation examples I copy-pasta'd for the benchmark I used a very low value for `k` in `Occ`. So when LLVM was able to vectorize the function, the vectorized version was always called on inputs too small to take advantage of vectorized sums when manually counting the BWT.
+
+Now, this would be an interesting oddity (isn't it crazy that optimizations made this so much slower?), except for the fact that `k=3` is much lower than typical real-world usage, AFAICT. One C++ application I frequently see used defaults to `k=32`, and I've been tinkering with the tradeoffs of much higher sampling rates like 128 or 256. Turns out, the vectorized version is wicked fast (even with safe code) once you up the sample rate past 32. I've [opened a PR](https://github.com/rust-bio/rust-bio/pull/76) to discuss these tradeoffs.
+
+I don't think this changes the usefulness of demonstrating how to use these tools with Rust, but it definitely puts some egg on my face! And it definitely underscores the important of measuring intelligently, and double-checking one's assumptions!
 
 ## Feedback?
 
