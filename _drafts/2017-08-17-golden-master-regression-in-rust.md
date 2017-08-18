@@ -5,7 +5,7 @@ date:   2017-08-17
 categories: rust
 ---
 
-**TLDR**: _I've been playing around with [snapshot](https://github.com/dikaiosune/snapshot-rs), a crate for automating golden master regression tests in Rust. It's experimental and unstable, but I think it's a cool example of how easy it is to build procedural macro helpers with the newer Rust APIs._
+**TLDR**: _I've been playing around with [snapshot](https://github.com/dikaiosune/snapshot-rs), a crate for automating golden master tests in Rust. It's experimental and unstable, but I think it's a cool example of how easy it is to build procedural macro helpers with the newer Rust APIs._
 
 ---
 
@@ -17,6 +17,13 @@ A few months ago, I was at [React Europe](https://www.react-europe.org/), watchi
 While I think someone (maybe me in a far off future) should definitely build #1 for Rust, I've been slowly building a crate for #2 using the new procedural macro APIs in nightly.
 
 ## How does it work in this crate?
+
+The `snapshot` crate has git dependencies, so it's not on crates.io yet. You should be able to use it in `Cargo.toml` still, but please do so with _extreme_ caution:
+
+```toml
+[dev-dependencies.snapshot]
+git = "https://github.com/dikaiosune/snapshot-rs"
+```
 
 You define a test that returns a value, like this:
 
@@ -36,9 +43,9 @@ mod test {
 }
 ```
 
-The returned value must implement the `Snap` trait, which at the moment has a blanket impl for any type with `serde::Deserialize + serde::Serialize`.
+The returned value must implement the `Snap` trait, which at the moment is just blanket impl'd for `serde::Deserialize + serde::Serialize`.
 
-When you run this test while the `UPDATE_SNAPSHOTS` environment variable is set, it will write a file to `PATH_OF_TEST_FILE/__snapshots__/FILENAME_OF_TEST_FILE.snap`. In the above example, it would be written to `tests/__snapshots__/simple.rs.snap`. The contents of that file will be something like this (right now, subject to change):
+When you run this test with the `UPDATE_SNAPSHOTS` environment variable set, it will write a file to `PATH_OF_TEST_FILE/__snapshots__/FILENAME_OF_TEST_FILE.snap`. In the above example, it would be written to `tests/__snapshots__/simple.rs.snap`. The contents of that file will be something like this (right now, subject to change):
 
 ```json
 {
@@ -50,6 +57,8 @@ When you run this test while the `UPDATE_SNAPSHOTS` environment variable is set,
   }
 }
 ```
+
+If you were to use this in your project, you'd commit this snapshot file to version control with the new test.
 
 If you were to change this test function to return `2` instead, and you ran the test again without setting `UPDATE_SNAPSHOTS`, you'd see an error like this:
 
@@ -74,9 +83,11 @@ This error message definitely needs work! For one thing, it's not clear whether 
 
 The error messages need improvement. I don't think `#[should_panic]` works, but I'm also not sure it's important for it to.
 
-I've started a command line tool to automate updating snapshots interactively. I think that's a really important part of this being useful. To update snapshots right now you have to very carefully only invoke specific tests using the limited filtering capabilities of the Rust test runner. This should definitely be automated, but it's slightly harder because Rust doesn't have machine-readable test harness output, and there's no API (yet) for plugging in your own harness.
+I've started a command line tool to automate updating snapshots interactively. I think that's a really important part of this being useful. To update snapshots right now you have to set an environment variable and manually invoke specific tests using the limited filtering capabilities of the Rust test runner. This CLI is also going to be slightly finicky to build because the Rust test runner doesn't have machine-readable output, and the only example I've found for parsing the output doesn't appear to work out of the box. Which means either spending a few months landing pluggable test harness output upstream, tweaking this existing nom parser, or writing my own parser to avoid learning nom.
 
-Also, it would be very useful to allow having unstructured String values for snapshots in addition to the structured JSON the crate currently writes. I'm not exactly sure how this will work in practice, but suggestions are welcome.
+Also, it would be very useful to allow having unstructured String values for snapshots in addition to the structured JSON the crate currently writes. In Jest, this seems useful for people who are testing the actual HTML output of a component's `render` function. I'm not exactly sure how this will work in practice, but suggestions are welcome.
+
+To be perfectly honest, this has been a cool experiment, but I'm writing this blog post in part to help me gauge how useful it would be to continue working on the above needs.
 
 ## Snapshot testing sounds dumb
 
@@ -86,21 +97,21 @@ Jest's snapshot tests are what's sometimes called "golden master tests" or "[cha
 
 > The goal of characterization tests is to help developers verify that the modifications made to a reference version of a software system did not modify its behavior in unwanted or undesirable ways. They enable, and provide a safety net for, extending and refactoring code that does not have adequate unit tests.
 
-In the context of UI development, they often fill a slightly different role: requiring conscious sign-off from developers when the output changes from a common but untested component of a system. This can have nice side effects for tooling: you can fail CI if snapshots changed without being committed, and as a result you can also ensure that reviewers see changes to the output of these components without having to spin up a full manual QA environment.
+From what I've seen of Jest's usage, these tests can also fill a slightly different role: requiring conscious sign-off from developers when the output changes from a common but undertested component of a system. This can have nice side effects for tooling: you can fail CI if snapshots change without being committed, and as a result you can also ensure that reviewers see changes to the output of these components without having to spin up a manual QA environment.
 
-These benefits are predicated on the assumption that you don't already have extensive behavioral or acceptance tests in place for the code in question. This assumption holds pretty often in my experience, and it's not always because of lack of attention or being rushed. My memory is that both rustc and Servo have custom systems for checking test output against files committed in the repository in situations where behavioral tests aren't ideal.
+These benefits are predicated on the assumption that you don't already have extensive behavioral or acceptance tests in place for the code in question. This assumption holds somewhat often in my experience, and it's not always because of lack of attention or being rushed. My memory is that both rustc and Servo have custom systems for checking test output against files committed in the repository in situations where functional tests aren't ideal, like CLI output.
 
 ## Snapshot testing sounds less dumb
 
-Cool. If you think you'd use this crate after `$FOO` feature was added, let me know!
+Cool. If you think you'd use this crate if `$FOO` feature were to be added, [let me know](https://github.com/dikaiosune/snapshot-rs/issues)!
 
-## Wait, how did you make the procedural macro?
+## How did you make the procedural macro?
 
 I followed along with Alex Crichton's work on the [async/await](https://github.com/alexcrichton/futures-await) procedural macros, basically. The `snapshot` crate [exports a separately-defined procedural macro](https://github.com/dikaiosune/snapshot-rs/blob/master/src/lib.rs#L8-L14) and also [defines a bunch of functions](https://github.com/dikaiosune/snapshot-rs/blob/master/src/lib.rs#L30) that we call to in the code that's written out to wrap the test function the user provides.
 
-The actual [procedural macro code](https://github.com/dikaiosune/snapshot-rs/blob/master/snapshot-proc-macro/src/lib.rs) defines an item attribute which panics on anything other than a function definition, parses an AST using [syn](https://github.com/dtolnay/syn), and then writes out a test wrapper with [quote](https://github.com/dtolnay/quote).
+The actual [procedural macro code](https://github.com/dikaiosune/snapshot-rs/blob/master/snapshot-proc-macro/src/lib.rs) defines an item attribute which panics on anything other than a function definition, parses an AST using [syn](https://github.com/dtolnay/syn), [mutates it slightly](https://github.com/dikaiosune/snapshot-rs/blob/master/snapshot-proc-macro/src/lib.rs#L17-L33), and then writes out a test wrapper with [quote](https://github.com/dtolnay/quote).
 
-In other words, there's nothing super original here, just a nice hack shamelessly adapted from [Alex](https://github.com/alexcrichton)'s work, and enabled by fantastic crates from [dtolnay](https://github.com/dtolnay)!
+In other words, there's nothing super original here, just a hack shamelessly adapted from [Alex](https://github.com/alexcrichton)'s work, and enabled by fantastic crates from [dtolnay](https://github.com/dtolnay)!
 
 ## Couldn't you have done this with `macro_rules`?
 
