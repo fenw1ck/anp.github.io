@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Snapshots: Automating Golden Master Regression Tests in Rust"
-date:   2017-08-17
+date:   2017-08-18
 categories: rust
 ---
 
