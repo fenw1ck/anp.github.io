@@ -121,5 +121,5 @@ I don't think so, because `concat_idents!` can't actually create new identifiers
 
 Thanks for reading! If this seems like something you'd like to use or contribute to, the [GitHub repository](https://github.com/dikaiosune/snapshot-rs) is a good place for that. You can find me on [Twitter](https://twitter.com/dika10sune), or on Mozilla IRC as `dikaiosune`.
 
-I've also posted this to the [Rust subreddit](TODO) for discussion.
+I've also posted this to the [Rust subreddit](https://www.reddit.com/r/rust/comments/6ujk91/snapshots_automating_golden_master_regression/) for discussion.
 
