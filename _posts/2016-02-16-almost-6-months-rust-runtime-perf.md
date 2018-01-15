@@ -14,7 +14,7 @@ After reading [this issue](https://github.com/rust-lang/rust/issues/31265), I de
 After some feedback on the reddit thread where I posted this, I've made a few changes here:
 
 
-1. Posted the benchmark manifest and output json to [https://github.com/dikaiosune/rust-runtime-benchmarks](https://github.com/dikaiosune/rust-runtime-benchmarks). Note that not all benchmarks in the manifest are included because they may have had all of their benchmarks ignored. secondstring doesn't have parameters to include which flags are called on <code>cargo bench</code> (yet).
+1. Posted the benchmark manifest and output json to [https://github.com/anp/rust-runtime-benchmarks](https://github.com/anp/rust-runtime-benchmarks). Note that not all benchmarks in the manifest are included because they may have had all of their benchmarks ignored. secondstring doesn't have parameters to include which flags are called on <code>cargo bench</code> (yet).
 2. I changed all of the graphs to use a more sensible y-axis. There's now a 50% window above and below the normalized values.
 3. Fixed some typos.
 4. Normalized all benchmark results against those from the first date the benchmark was successfully run (9/1/15 in most cases).
@@ -22,7 +22,7 @@ After some feedback on the reddit thread where I posted this, I've made a few ch
 
 ---
 
-This data was generated using [secondstring](https://github.com/dikaiosune/secondstring), a benchmark tracking tool I'm working on (it's still pretty rudimentary right now). At the moment it only supports running specified crate versions and git repo commits against a range of nightly compiler dates. It doesn't have any analysis built-in and just saves some JSON of the results. Soon I'd like to add automatic regression detection, but for now I just wanted to do a little graphing of the data.
+This data was generated using [secondstring](https://github.com/anp/secondstring), a benchmark tracking tool I'm working on (it's still pretty rudimentary right now). At the moment it only supports running specified crate versions and git repo commits against a range of nightly compiler dates. It doesn't have any analysis built-in and just saves some JSON of the results. Soon I'd like to add automatic regression detection, but for now I just wanted to do a little graphing of the data.
 
 Using my completely 100% scientific method of benchmark selection (a combination of finding benchmarks among the most downloaded crates and searching crates.io for "benchmark"), I picked recent commits from ~20 repositories that support running `cargo bench` in their root directory and ran their benchmarks against nightly compilers from 9/1/15 to 2/11/16. The repositories' benchmarks were pinned to a single commit each, so this runs the same code across all of the compiler versions. All benchmarks were run on the same machine (i7-6700k) running Arch Linux.
 

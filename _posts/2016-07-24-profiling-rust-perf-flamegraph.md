@@ -358,7 +358,7 @@ I don't think this changes the usefulness of demonstrating how to use these tool
 
 Much thanks to `pczarn` and `curtism` in `#rust-offtopic` for kindly taking the time to read this and providing very useful edits.
 
-Contact links are in the footer below. I’m usually in #rust on irc.mozilla.org as dikaiosune.
+Contact links are in the footer below. I’m usually in #rust on irc.mozilla.org as anp.
 
 I also posted this to [Hacker News](https://news.ycombinator.com/item?id=12153798) and the [/r/rust subreddit](https://www.reddit.com/r/rust/comments/4udxmr/rust_performance_a_story_featuring_perf_and/) if you'd like to discuss it either of those places.
 

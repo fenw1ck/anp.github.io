@@ -5,7 +5,7 @@ date:   2017-08-18
 categories: rust
 ---
 
-**TLDR**: _I've been playing around with [snapshot](https://github.com/dikaiosune/snapshot-rs), a crate for automating golden master tests in Rust. It's experimental and unstable, but I think it's a cool example of how easy it is to build procedural macro helpers with the newer Rust APIs._
+**TLDR**: _I've been playing around with [snapshot](https://github.com/anp/snapshot-rs), a crate for automating golden master tests in Rust. It's experimental and unstable, but I think it's a cool example of how easy it is to build procedural macro helpers with the newer Rust APIs._
 
 ---
 
@@ -22,7 +22,7 @@ The `snapshot` crate has git dependencies, so it's not on crates.io yet. You sho
 
 ```toml
 [dev-dependencies.snapshot]
-git = "https://github.com/dikaiosune/snapshot-rs"
+git = "https://github.com/anp/snapshot-rs"
 ```
 
 You define a test that returns a value, like this:
@@ -103,13 +103,13 @@ These benefits are predicated on the assumption that you don't already have exte
 
 ## Snapshot testing sounds less dumb
 
-Cool. If you think you'd use this crate if `$FOO` feature were to be added, [let me know](https://github.com/dikaiosune/snapshot-rs/issues)!
+Cool. If you think you'd use this crate if `$FOO` feature were to be added, [let me know](https://github.com/anp/snapshot-rs/issues)!
 
 ## How did you make the procedural macro?
 
-I followed along with Alex Crichton's work on the [async/await](https://github.com/alexcrichton/futures-await) procedural macros, basically. The `snapshot` crate [exports a separately-defined procedural macro](https://github.com/dikaiosune/snapshot-rs/blob/master/src/lib.rs#L8-L14) and also [defines a bunch of functions](https://github.com/dikaiosune/snapshot-rs/blob/master/src/lib.rs#L30) that we call to in the code that's written out to wrap the test function the user provides.
+I followed along with Alex Crichton's work on the [async/await](https://github.com/alexcrichton/futures-await) procedural macros, basically. The `snapshot` crate [exports a separately-defined procedural macro](https://github.com/anp/snapshot-rs/blob/master/src/lib.rs#L8-L14) and also [defines a bunch of functions](https://github.com/anp/snapshot-rs/blob/master/src/lib.rs#L30) that we call to in the code that's written out to wrap the test function the user provides.
 
-The actual [procedural macro code](https://github.com/dikaiosune/snapshot-rs/blob/master/snapshot-proc-macro/src/lib.rs) defines an item attribute which panics on anything other than a function definition, parses an AST using [syn](https://github.com/dtolnay/syn), [mutates it slightly](https://github.com/dikaiosune/snapshot-rs/blob/master/snapshot-proc-macro/src/lib.rs#L17-L33), and then writes out a test wrapper with [quote](https://github.com/dtolnay/quote).
+The actual [procedural macro code](https://github.com/anp/snapshot-rs/blob/master/snapshot-proc-macro/src/lib.rs) defines an item attribute which panics on anything other than a function definition, parses an AST using [syn](https://github.com/dtolnay/syn), [mutates it slightly](https://github.com/anp/snapshot-rs/blob/master/snapshot-proc-macro/src/lib.rs#L17-L33), and then writes out a test wrapper with [quote](https://github.com/dtolnay/quote).
 
 In other words, there's nothing super original here, just a hack shamelessly adapted from [Alex](https://github.com/alexcrichton)'s work, and enabled by fantastic crates from [dtolnay](https://github.com/dtolnay)!
 
@@ -119,7 +119,7 @@ I don't think so, because `concat_idents!` can't actually create new identifiers
 
 ## Bye
 
-Thanks for reading! If this seems like something you'd like to use or contribute to, the [GitHub repository](https://github.com/dikaiosune/snapshot-rs) is a good place for that. You can find me on [Twitter](https://twitter.com/dika10sune), or on Mozilla IRC as `dikaiosune`.
+Thanks for reading! If this seems like something you'd like to use or contribute to, the [GitHub repository](https://github.com/anp/snapshot-rs) is a good place for that. You can find me on [Twitter](https://twitter.com/dika10sune), or on Mozilla IRC as `anp`.
 
 I've also posted this to the [Rust subreddit](https://www.reddit.com/r/rust/comments/6ujk91/snapshots_automating_golden_master_regression/) for discussion.
 

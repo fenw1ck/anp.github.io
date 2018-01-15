@@ -5,7 +5,7 @@ date:   2016-06-11
 categories: rust
 ---
 
-**TLDR: I'm toying with writing a C standard library in Rust by porting musl-libc over function-by-function. The work is in progress at [https://github.com/dikaiosune/rusl](https://github.com/dikaiosune/rusl).**
+**TLDR: I'm toying with writing a C standard library in Rust by porting musl-libc over function-by-function. The work is in progress at [https://github.com/anp/rusl](https://github.com/anp/rusl).**
 
 ## Are you mad?
 
@@ -15,7 +15,7 @@ I don't really know good answers to these questions, but I have been tinkering w
 
 ## Show me some code!
 
-Ok, ok. So I'm a pretty verbose guy, I get it. If you're actually interested, I encourage you to stick around, but if not here are some examples of C -> Rust ports. You can definitely look at the [commits on the repo](https://github.com/dikaiosune/rusl/commits/master), where I've tried hard and occasionally succeeded for each new function and its previous C code to be side-by-side. [Here](https://github.com/dikaiosune/rusl/commit/8cac70db2ad065e06e1320f6a232d9e3c6563490) [are](https://github.com/dikaiosune/rusl/commit/7161d26b7414e123e226d63672705daeac7476c1) a [few](https://github.com/dikaiosune/rusl/commit/0e93e5fb122101f8fb7da2bed40ef1b37727293e) [examples](https://github.com/dikaiosune/rusl/commit/deb822aa93586206ed3b33661d2bd0231dc2daac). And here's a random one which I am not in particular attached to.
+Ok, ok. So I'm a pretty verbose guy, I get it. If you're actually interested, I encourage you to stick around, but if not here are some examples of C -> Rust ports. You can definitely look at the [commits on the repo](https://github.com/anp/rusl/commits/master), where I've tried hard and occasionally succeeded for each new function and its previous C code to be side-by-side. [Here](https://github.com/anp/rusl/commit/8cac70db2ad065e06e1320f6a232d9e3c6563490) [are](https://github.com/anp/rusl/commit/7161d26b7414e123e226d63672705daeac7476c1) a [few](https://github.com/anp/rusl/commit/0e93e5fb122101f8fb7da2bed40ef1b37727293e) [examples](https://github.com/anp/rusl/commit/deb822aa93586206ed3b33661d2bd0231dc2daac). And here's a random one which I am not in particular attached to.
 
 C version of musl's `strlen`:
 
@@ -101,11 +101,11 @@ Some things which are difficult because they're not yet in Rust:
 
 ## How am I doing this?
 
-My goal was to build musl libc, build a Rust static library of the functions I'd implemented, and then stick them into the musl archive before it gets linked against the test suite executables. And it works! Mostly. Using a nasty bash script instead of the musl Makefile, because make is ugly and I was already in way over my head by the time I figured out how to do the bash version. [Here's the bash script](https://github.com/dikaiosune/rusl/blob/master/build_and_test.sh), but please don't revoke my membership card just because it's not the one true way.
+My goal was to build musl libc, build a Rust static library of the functions I'd implemented, and then stick them into the musl archive before it gets linked against the test suite executables. And it works! Mostly. Using a nasty bash script instead of the musl Makefile, because make is ugly and I was already in way over my head by the time I figured out how to do the bash version. [Here's the bash script](https://github.com/anp/rusl/blob/master/build_and_test.sh), but please don't revoke my membership card just because it's not the one true way.
 
 Once the two static archives have been munged together, the libc-test suite is built and executed, using the local `build/usr/[include,lib]` directories as the header/lib search paths.
 
-Since musl doesn't yet pass quite all of its own tests (*tsk, tsk*), I recorded the test failures from a clean unadulterated test run in a file, and on each new test run I check to make sure they haven't further regressed (see [this part](https://github.com/dikaiosune/rusl/blob/master/build_and_test.sh#L63) of the bash script).
+Since musl doesn't yet pass quite all of its own tests (*tsk, tsk*), I recorded the test failures from a clean unadulterated test run in a file, and on each new test run I check to make sure they haven't further regressed (see [this part](https://github.com/anp/rusl/blob/master/build_and_test.sh#L63) of the bash script).
 
 Whenever I replace a musl C function with a rusl Rust function, the scripts clean the build directory, build the two projects from scratch, munge their archives together, and run the test suite. I fix any regressions, and once they're all fixed I commit. This is more or less in keeping with the common-in-Rust philosophy (which I quite like) of "automatically maintain a repository of code that always passes all the tests" (I first read this [here](https://graydon2.dreamwidth.org/1597.html) but I'm unfamiliar with its provenance).
 
@@ -143,6 +143,6 @@ As I get around to replacing more of the library, I'd like to experiment more wi
 
 ## Comments?
 
-Contact links are in the footer below. Would love to hear from anyone about this project or other C-to-Rust efforts, or just stuff in general. I'm usually in `#rust` on irc.mozilla.org as `dikaiosune`.
+Contact links are in the footer below. Would love to hear from anyone about this project or other C-to-Rust efforts, or just stuff in general. I'm usually in `#rust` on irc.mozilla.org as `anp`.
 
 *Update*: [I posted this to /r/rust](https://www.reddit.com/r/rust/comments/4nqwfg/baby_steps_slowly_porting_musl_to_rust/), and it looks like someone also [submitted it to Hacker News](https://news.ycombinator.com/item?id=11888885), so conversations may be occurring there.

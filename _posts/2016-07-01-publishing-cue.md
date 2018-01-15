@@ -19,7 +19,7 @@ Since I've been copy-pasting this everywhere and wasn't able to find anything co
 
 ## What?
 
-The [code is on GitHub](https://github.com/dikaiosune/cue). The `pipeline` method spawns up a couple of queues (one with a bounded buffer for incoming work, to limit RAM usage, and a lock free queue for results to reduce contention between worker threads), and then executes a pair of closures in parallel on all of the inputs from an iterator. Here's the (non-compiling) example from the repo:
+The [code is on GitHub](https://github.com/anp/cue). The `pipeline` method spawns up a couple of queues (one with a bounded buffer for incoming work, to limit RAM usage, and a lock free queue for results to reduce contention between worker threads), and then executes a pair of closures in parallel on all of the inputs from an iterator. Here's the (non-compiling) example from the repo:
 
 ```rust
 extern crate cue;
