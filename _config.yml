@@ -4,7 +4,7 @@
 baseurl:
 
 # Site live URL
-url: http://blog.adamperry.me
+url: https://blog.anp.lol
 
 # Harmony theme configuration. Please change accordingly.
 harmony:
@@ -20,7 +20,7 @@ harmony:
   author: # Author details
     name: Adam Perry
     email: adam.n.perry@gmail.com
-    url: http://blog.adamperry.me
+    url: http://blog.anp.lol
 
   # Google Analytics key, leave blank to ignore
   google_analytics_key: UA-58451337-2
