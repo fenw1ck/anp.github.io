@@ -20,7 +20,7 @@ harmony:
   author: # Author details
     name: Adam Perry
     email: adam.n.perry@gmail.com
-    url: http://blog.anp.lol
+    url: https://blog.anp.lol
 
   # Google Analytics key, leave blank to ignore
   google_analytics_key: UA-58451337-2
@@ -28,7 +28,7 @@ harmony:
   # Profile links, leave blank to ignore
   social:
     github: anp
-    twitter: dika10sune
+    twitter: adam_n_p
   # Toggle disclaimer in footer
   show_disclaimer: false
 
