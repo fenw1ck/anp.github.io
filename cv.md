@@ -27,14 +27,14 @@ I'm the author and current maintainer of rfcbot, a tool that helps the Rust team
 
 #### [Expo](https://expo.io) (YC s2016)
 
-**Software Developer** -- 11/16 - 7/17, 1/18 - present
+**Software Developer** -- Nov 16 - Jul 17, Jan 18 - present
 
 * Currently investigating new low-level primitives for our application runtime
 * Authored [Create React Native App](https://facebook.github.io/react-native/blog/2017/03/13/introducing-create-react-native-app.html) and spoke at [ReactConf 2017](https://www.youtube.com/watch?v=9baaVjGdBqs)
 * Led an overall infrastructure simplification effort
 * Managed relationships with important external partners, inc. Facebook
 
-**Engineering Manager** -- 7/17 - 12/17
+**Engineering Manager** -- Jul 17 - Dec 17
 
 * Planned and led our first company-wide targeted product push
 * Doubled our engineering team in 6 months
@@ -44,12 +44,12 @@ I'm the author and current maintainer of rfcbot, a tool that helps the Rust team
 
 #### Northern Arizona University
 
-**Application System Analyst** -- 8/15 - 10/16
+**Application System Analyst** -- Aug 15 - Oct 16
 
 * Built a high-performance metagenomic binning pipeline designed for rapid detection of rare variants of pathogens in genetic samples
 * Worked on several Django web applications to support various research efforts
 
-**End-User Computing Specialist** -- 7/14 - 8/15
+**End-User Computing Specialist** -- Jul 14 - Aug 15
 
 I worked on the school's help desk for the Bb Learn LMS and ended up developing several custom software projects including:
 
