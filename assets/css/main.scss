@@ -115,7 +115,7 @@ h6 {
 }
 
 p {
-  line-height: 1.6;
+  line-height: 1.3;
   @include font-size(14px);
   @include MQ(M) {
     @include font-size(18px);
@@ -164,7 +164,7 @@ a.default-anchor {
   text-decoration: none;
   border-bottom: 1px solid transparent;
   color: $base-08;
-  
+
 
 }
 
@@ -267,7 +267,7 @@ footer.main-footer {
     padding: 0 0 1em 0;
     li {
       @include font-size(12px);
-      line-height: 1.6;
+      line-height: 1.3;
       display: inline;
       padding-right: 10px;
       @include MQ(M) {
@@ -375,7 +375,7 @@ div.page-content {
     li {
       @include font-size(14px);
       color: $color-2;
-      line-height: 1.6;
+      line-height: 1.4;
       background: url(./images/bullet.svg);
       background-repeat: no-repeat;
       background-position: 0 6px;

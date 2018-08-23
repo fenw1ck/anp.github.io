@@ -1,9 +1,9 @@
 ---
 layout: page
-title: About me
+title: About
 permalink: /about/
 ---
 
-### Contact me
+Hi!
 
-Contact links are below. I'm `anp` on irc.mozilla.org, and usually `dikaiosune` on HN and other IRC, and `sophrosun3` when I'm occasionally on reddit.
+Contact links are in the footer. I'm `anp` on GitHub and irc.mozilla.org, `dikaiosune` on HN and freenode, and `sophrosun3` when I'm occasionally on reddit.
