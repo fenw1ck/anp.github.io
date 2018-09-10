@@ -115,7 +115,7 @@ h6 {
 }
 
 p {
-  line-height: 1.3;
+  line-height: 1.4;
   @include font-size(14px);
   @include MQ(M) {
     @include font-size(18px);
@@ -267,7 +267,7 @@ footer.main-footer {
     padding: 0 0 1em 0;
     li {
       @include font-size(12px);
-      line-height: 1.3;
+      line-height: 1.4;
       display: inline;
       padding-right: 10px;
       @include MQ(M) {
@@ -458,7 +458,7 @@ div.page-content {
   background: url(./images/bullet.png);
   @include font-size(13px);
   color: $color-2;
-  line-height: 1.6;
+  line-height: 1.4;
   background-repeat: no-repeat;
   background-position: 0 6px;
   padding: 0 0 5px 15px;
@@ -631,7 +631,7 @@ div.post {
   }
 }
 p.post-meta {
-  line-height: 1.6;
+  line-height: 1.4;
   letter-spacing: 2px;
   @include font-size(12px);
   overflow: hidden;
